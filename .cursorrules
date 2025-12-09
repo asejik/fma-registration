@@ -1,0 +1,29 @@
+# Project Context
+You are building a Modern React Application using Vite, Tailwind CSS v4, and Firebase.
+
+# Tech Stack & Best Practices
+
+## Frontend (React + Vite)
+- Use Functional Components with Hooks only.
+- Use `jsx` extension for component files.
+- Avoid `default` exports; use named exports (e.g., `export const Hero = () => {}`).
+- STRICT: Use Tailwind CSS v4 for all styling.
+  - Do NOT use `@apply` in CSS files. Use utility classes directly in JSX.
+  - Use the new `<div class="shadow-sm">` syntax (no config file needed for standard values).
+- Performance: Use `React.lazy` and `Suspense` for heavy routes.
+- State Management: Keep state local where possible; use Context only for global data (Auth).
+
+## Styling (Tailwind v4)
+- Use standard Tailwind colors (e.g., `bg-blue-500`, `text-slate-900`).
+- For "Glassmorphism", use: `backdrop-blur-md bg-white/10 border border-white/20`.
+- Responsive design: Mobile-first (`w-full md:w-1/2`).
+
+## Backend (Firebase)
+- Use Modular SDK (v9+) imports only:
+  - Good: `import { getAuth, signInWithEmailAndPassword } from "firebase/auth";`
+  - Bad: `import firebase from "firebase/compat/app";`
+- Security: NEVER hardcode API keys in the code. Use `import.meta.env.VITE_API_KEY`.
+
+## AI Component Generation (21.dev style)
+- When asked to generate UI, prioritize "Shadcn-like" clean aesthetics.
+- Use lucid-react for icons if needed (install if requested).
