@@ -1,30 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Added useEffect
 import { useForm } from 'react-hook-form';
 import { db } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import emailjs from '@emailjs/browser'; // Import EmailJS
+import emailjs from '@emailjs/browser';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
-const RegistrationForm = () => {
+// Receive the prop
+const RegistrationForm = ({ prefilledCohort }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState(null);
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  // Added 'setValue' to the destructuring
+  const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm();
+
+  // Watch for changes in prefilledCohort
+  useEffect(() => {
+    if (prefilledCohort) {
+      setValue('cohort', prefilledCohort);
+    }
+  }, [prefilledCohort, setValue]);
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // 1. Firebase (Primary)
       await addDoc(collection(db, "registrations"), {
         ...data,
         createdAt: serverTimestamp(),
       });
 
-      // 2. EmailJS (Send Email)
-      // Note: We don't await this to block the UI, we let it run
       emailjs.send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
@@ -37,8 +43,6 @@ const RegistrationForm = () => {
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       ).catch(err => console.error("Email failed:", err));
 
-      // 3. Google Sheets (Backup)
-      // We use mode: 'no-cors' to prevent CORS errors on the frontend
       fetch(import.meta.env.VITE_GOOGLE_SHEET_URL, {
         method: "POST",
         mode: "no-cors",
@@ -46,7 +50,6 @@ const RegistrationForm = () => {
         body: JSON.stringify(data)
       }).catch(err => console.error("Sheet backup failed:", err));
 
-      // 4. Success
       setIsSuccess(true);
       reset();
 
@@ -61,7 +64,6 @@ const RegistrationForm = () => {
   if (isSuccess) {
     return (
       <div id="register" className="py-20 px-4 min-h-[600px] flex items-center justify-center bg-slate-950 relative overflow-hidden">
-        {/* Success Card */}
         <div className="relative z-10 max-w-md w-full bg-slate-900/50 backdrop-blur-xl border border-green-500/30 rounded-3xl p-8 text-center shadow-2xl animate-fade-in-up">
           <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-green-400">
             <CheckCircle size={40} />
@@ -83,7 +85,6 @@ const RegistrationForm = () => {
 
   return (
     <section id="register" className="py-24 px-4 bg-slate-950 relative overflow-hidden">
-      {/* Background Glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 max-w-xl mx-auto">
@@ -96,7 +97,6 @@ const RegistrationForm = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-slate-900/50 backdrop-blur-xl border border-white/10 p-8 md:p-10 rounded-3xl shadow-2xl">
 
-          {/* Full Name */}
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-300 uppercase tracking-wider">Full Name</label>
             <input
@@ -108,7 +108,6 @@ const RegistrationForm = () => {
             {errors.fullName && <p className="text-red-400 text-xs flex items-center gap-1"><AlertCircle size={12}/> {errors.fullName.message}</p>}
           </div>
 
-          {/* Email */}
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-300 uppercase tracking-wider">Email Address</label>
             <input
@@ -123,7 +122,6 @@ const RegistrationForm = () => {
             {errors.email && <p className="text-red-400 text-xs flex items-center gap-1"><AlertCircle size={12}/> {errors.email.message}</p>}
           </div>
 
-          {/* Phone */}
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-300 uppercase tracking-wider">Phone Number</label>
             <input
@@ -135,7 +133,6 @@ const RegistrationForm = () => {
             {errors.phone && <p className="text-red-400 text-xs flex items-center gap-1"><AlertCircle size={12}/> {errors.phone.message}</p>}
           </div>
 
-          {/* Cohort Selection */}
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-300 uppercase tracking-wider">Preferred Cohort</label>
             <div className="relative">
@@ -154,14 +151,12 @@ const RegistrationForm = () => {
             {errors.cohort && <p className="text-red-400 text-xs flex items-center gap-1"><AlertCircle size={12}/> {errors.cohort.message}</p>}
           </div>
 
-          {/* Error Message from Firebase */}
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center">
               {error}
             </div>
           )}
 
-          {/* Submit Button */}
           <button
             disabled={isSubmitting}
             type="submit"

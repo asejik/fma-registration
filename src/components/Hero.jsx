@@ -1,6 +1,7 @@
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
+import Countdown from './Countdown'; // Import the new component
 
 // Import Swiper styles
 import 'swiper/css';
@@ -52,24 +53,29 @@ const Hero = () => {
                 className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] ease-linear transform scale-100 hover:scale-110"
                 style={{ backgroundImage: `url(${slide.image})` }}
               >
-                 {/* Dark Overlay for text readability */}
+                 {/* Dark Overlay */}
                  <div className="absolute inset-0 bg-black/60 md:bg-black/50 mix-blend-multiply" />
                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
               </div>
 
               {/* Text Content */}
-              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4 max-w-5xl mx-auto mt-10">
+              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4 max-w-5xl mx-auto mt-6">
                 <span className="inline-block py-1 px-3 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-sm font-semibold tracking-wider mb-4 backdrop-blur-sm animate-fade-in-up">
                   FREEDOM MINISTRY ACADEMY
                 </span>
 
-                <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight mb-6 drop-shadow-2xl">
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight mb-4 drop-shadow-2xl">
                   {slide.title}
                 </h1>
 
-                <p className="text-lg md:text-2xl text-gray-200 max-w-2xl font-light mb-8 leading-relaxed">
+                <p className="text-lg md:text-2xl text-gray-200 max-w-2xl font-light mb-6 leading-relaxed">
                   {slide.subtitle}
                 </p>
+
+                {/* --- COUNTDOWN ADDED HERE --- */}
+                <div className="mb-10">
+                  <Countdown />
+                </div>
 
                 <div className="flex gap-4">
                   <button
