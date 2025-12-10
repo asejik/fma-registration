@@ -1,24 +1,20 @@
 import React from 'react';
+import logo from '../assets/images/fma-logo.png'; // Import the logo
 
 const Navbar = () => {
   const scrollToRegister = () => {
-    const section = document.getElementById('register');
-    if (section) {
-      section.scrollIntoView({ behavior: 'smooth' });
-    }
+    document.getElementById('register')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 py-6 px-4 md:px-12 transition-all duration-300">
-      <div className="max-w-7xl mx-auto flex justify-between items-center backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg">
-        {/* Logo Area */}
-        <div className="flex items-center gap-2">
-          {/* Replace this div with your <img src="..." /> later */}
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center font-bold text-white text-xl">
-            F
-          </div>
-          <span className="text-white font-bold tracking-wider text-lg hidden sm:block">
-            FMA <span className="text-blue-400">ACADEMY</span>
+    <nav className="fixed top-0 left-0 w-full z-50 py-4 px-4 md:px-12 transition-all duration-300">
+      <div className="max-w-7xl mx-auto flex justify-between items-center backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-3 shadow-lg">
+
+        {/* Logo Area - UPDATED */}
+        <div className="flex items-center gap-3">
+          <img src={logo} alt="FMA Logo" className="w-12 h-12 object-contain" />
+          <span className="text-white font-bold tracking-wider text-lg hidden sm:block drop-shadow-md">
+            Freedom Ministry <span className="text-blue-400">Academy</span>
           </span>
         </div>
 
