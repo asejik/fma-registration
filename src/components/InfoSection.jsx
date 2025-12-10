@@ -40,7 +40,7 @@ const InfoSection = ({ onSelectCohort }) => {
         {/* 1. Brief Intro Preview */}
         <div className="mb-20 text-center max-w-4xl mx-auto">
           <h2 className="text-sm font-bold tracking-[0.2em] text-blue-400 uppercase mb-4 animate-pulse">
-            The Vision
+            The Brief
           </h2>
           <h3 className="text-4xl md:text-5xl font-black text-white mb-8 tracking-tight">
             WHERE POTENTIAL <br className="hidden md:block" />
@@ -60,7 +60,7 @@ const InfoSection = ({ onSelectCohort }) => {
             className="group inline-flex items-center gap-2 px-8 py-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white font-semibold tracking-wide"
           >
             <BookOpen size={18} className="text-blue-400" />
-            Read Full Vision
+            Read Full Brief
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
@@ -168,7 +168,7 @@ const InfoSection = ({ onSelectCohort }) => {
         </div>
       </div>
 
-      {/* FULL VISION MODAL (Kept exactly as it was) */}
+      {/* FULL BRIEF MODAL (Kept exactly as it was) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
@@ -183,7 +183,7 @@ const InfoSection = ({ onSelectCohort }) => {
               <X size={24} />
             </button>
             <h3 className="text-2xl font-black text-white mb-6 border-b border-white/10 pb-4">
-              THE VISION
+              THE BRIEF
             </h3>
             {fullText}
             <div className="mt-8 pt-6 border-t border-white/10 text-center">
