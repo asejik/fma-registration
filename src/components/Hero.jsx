@@ -1,30 +1,34 @@
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
-import Countdown from './Countdown'; // Import the new component
+import Countdown from './Countdown';
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 
+// --- IMPORT YOUR IMAGES HERE ---
+import hero1 from '../assets/images/hero1.jpg'; // Adjust extension if .png or .webp
+import hero2 from '../assets/images/hero2.jpg';
+import hero3 from '../assets/images/hero3.jpg';
+
 const Hero = () => {
-  // Placeholder images - Replace these URLS with your actual Church photos later
   const slides = [
     {
       id: 1,
-      image: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2073&auto=format&fit=crop",
+      image: hero1, // Use the imported variable, NOT a string
       title: "POTENTIAL BECOMES PURPOSE",
       subtitle: "Join the next generation of Kingdom leaders."
     },
     {
       id: 2,
-      image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop",
+      image: hero2,
       title: "LAGOS & ILORIN 2026",
       subtitle: "Two locations. One mandate. Get ready."
     },
     {
       id: 3,
-      image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=2070&auto=format&fit=crop",
+      image: hero3,
       title: "INTENTIONAL PREPARATION",
       subtitle: "6 Days of intensive spiritual training."
     }
@@ -72,7 +76,6 @@ const Hero = () => {
                   {slide.subtitle}
                 </p>
 
-                {/* --- COUNTDOWN ADDED HERE --- */}
                 <div className="mb-10">
                   <Countdown />
                 </div>
