@@ -92,7 +92,7 @@ const InfoSection = ({ onSelectCohort }) => {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 uppercase font-bold">Dates</p>
-                    <p className="font-semibold">March 2nd - 7th, 2025</p>
+                    <p className="font-semibold">March 2nd - 7th, 2026</p>
                   </div>
                 </div>
 
@@ -141,7 +141,7 @@ const InfoSection = ({ onSelectCohort }) => {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 uppercase font-bold">Dates</p>
-                    <p className="font-semibold">July 13th - 18th, 2025</p>
+                    <p className="font-semibold">July 13th - 18th, 2026</p>
                   </div>
                 </div>
 
