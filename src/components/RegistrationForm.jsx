@@ -102,7 +102,7 @@ const RegistrationForm = ({ prefilledCohort }) => {
             <input
               {...register("fullName", { required: "Name is required" })}
               type="text"
-              placeholder="e.g. David Oyedepo"
+              placeholder="e.g. Sogo Ayenigba"
               className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
             />
             {errors.fullName && <p className="text-red-400 text-xs flex items-center gap-1"><AlertCircle size={12}/> {errors.fullName.message}</p>}
@@ -116,7 +116,7 @@ const RegistrationForm = ({ prefilledCohort }) => {
                 pattern: { value: /^\S+@\S+$/i, message: "Please enter a valid email" }
               })}
               type="email"
-              placeholder="david@example.com"
+              placeholder="sogo@example.com"
               className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
             />
             {errors.email && <p className="text-red-400 text-xs flex items-center gap-1"><AlertCircle size={12}/> {errors.email.message}</p>}
