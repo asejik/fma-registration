@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-// We will add getAuth later for the Admin Dashboard
-// import { getAuth } from "firebase/auth";
+import { getAuth } from "firebase/auth"; // Add this
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,9 +11,7 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Services
 export const db = getFirestore(app);
-// export const auth = getAuth(app);
+export const auth = getAuth(app); // Export this
