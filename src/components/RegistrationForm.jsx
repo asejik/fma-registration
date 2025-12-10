@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { db } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import emailjs from '@emailjs/browser'; // Import EmailJS
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 const RegistrationForm = () => {
@@ -16,17 +17,39 @@ const RegistrationForm = () => {
     setError(null);
 
     try {
-      // 1. Save to Firebase Firestore
+      // 1. Firebase (Primary)
       await addDoc(collection(db, "registrations"), {
         ...data,
-        createdAt: serverTimestamp(), // detailed server time
-        syncedToSheets: false, // Flag for future background job
-        emailSent: false       // Flag for future email logic
+        createdAt: serverTimestamp(),
       });
 
-      // 2. Success Feedback
+      // 2. EmailJS (Send Email)
+      // Note: We don't await this to block the UI, we let it run
+      emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+            fullName: data.fullName,
+            email: data.email,
+            cohort: data.cohort,
+            phone: data.phone
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+      ).catch(err => console.error("Email failed:", err));
+
+      // 3. Google Sheets (Backup)
+      // We use mode: 'no-cors' to prevent CORS errors on the frontend
+      fetch(import.meta.env.VITE_GOOGLE_SHEET_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      }).catch(err => console.error("Sheet backup failed:", err));
+
+      // 4. Success
       setIsSuccess(true);
-      reset(); // Clear form
+      reset();
+
     } catch (err) {
       console.error("Error saving document: ", err);
       setError("Something went wrong. Please check your internet connection.");
