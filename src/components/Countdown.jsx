@@ -50,9 +50,9 @@ const Countdown = () => {
 
   return (
     <div className="flex flex-wrap justify-center items-center mt-8 md:mt-12 animate-fade-in-up">
-        {/* Label: Horizontal on Mobile, Rotated Side-Text on Desktop */}
+        {/* Label: Horizontal on Mobile, Vertical on Desktop (No Rotation) */}
         <div className="w-full md:w-auto text-center mb-4 md:mb-0 md:mr-6">
-            <span className="text-slate-300 font-bold tracking-widest text-sm md:writing-mode-vertical md:rotate-180 block">
+            <span className="text-slate-300 font-bold tracking-widest text-sm md:[writing-mode:vertical-rl] block">
                 STARTS IN
             </span>
         </div>
