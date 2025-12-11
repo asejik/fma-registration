@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // Added useEffect
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { db } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
