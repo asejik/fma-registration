@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { MapPin, Calendar, Clock, ArrowRight, X, BookOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Receive the prop here
-const InfoSection = ({ onSelectCohort }) => {
+const InfoSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // The Full Text
@@ -107,13 +108,13 @@ const InfoSection = ({ onSelectCohort }) => {
                 </div>
               </div>
 
-              {/* UPDATED BUTTON */}
-              <button
-                onClick={() => onSelectCohort('Lagos')}
+              {/* LAGOS CARD BUTTON */}
+              <Link
+                to="/register"
                 className="w-full mt-8 pt-8 border-t border-white/10 flex items-center gap-2 text-orange-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
               >
-                Select This Cohort <ArrowRight size={16} />
-              </button>
+                Register for Lagos <ArrowRight size={16} />
+              </Link>
             </div>
           </div>
 
@@ -157,12 +158,12 @@ const InfoSection = ({ onSelectCohort }) => {
               </div>
 
               {/* UPDATED BUTTON */}
-              <button
-                onClick={() => onSelectCohort('Ilorin')}
+              <Link
+                to="/register?cohort=Ilorin"
                 className="w-full mt-8 pt-8 border-t border-white/10 flex items-center gap-2 text-cyan-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
               >
-                Select This Cohort <ArrowRight size={16} />
-              </button>
+                Register for Ilorin <ArrowRight size={16} />
+              </Link>
             </div>
           </div>
         </div>

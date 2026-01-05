@@ -2,6 +2,7 @@ import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
 import Countdown from './Countdown';
+import { Link } from 'react-router-dom';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -81,12 +82,13 @@ const Hero = () => {
                 </div>
 
                 <div className="flex gap-4">
-                  <button
-                    onClick={scrollToRegister}
+                  {/* REPLACE the old <button> with this <Link> */}
+                  <Link
+                    to="/register"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-[0_0_20px_rgba(37,99,235,0.5)] hover:shadow-[0_0_30px_rgba(37,99,235,0.7)]"
                   >
-                    Join Waitlist
-                  </button>
+                    Register Now
+                  </Link>
                 </div>
               </div>
             </div>
