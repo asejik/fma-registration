@@ -1,56 +1,73 @@
-import React, { useState, useEffect } from 'react'; // Added useEffect
+import React, { useState, useEffect } from 'react';
 import { PaystackButton } from 'react-paystack';
 import { db } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom'; // Added useSearchParams
-import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { Loader2, AlertCircle, ArrowLeft, Globe } from 'lucide-react';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams(); // Hook to read URL params
+  const [searchParams] = useSearchParams();
   const [isSaving, setIsSaving] = useState(false);
 
   // CONFIGURATION
-  const AMOUNT = 20000;
+  const AMOUNT_NGN = 20000;
   const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfpjqsOc92UOMikXJH9z7kiPJH48EI3bhu3mHGoVaHC4Plha4HIiqyIsQciBxOJcZqbQ/exec";
 
-  // Determine initial cohort from URL (Default to Lagos if empty)
-  const initialCohort = searchParams.get('cohort') === 'Ilorin' ? 'Ilorin' : 'Lagos';
+  const initialCohort = searchParams.get('cohort') || 'Lagos';
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    maritalStatus: '',
-    occupation: '',
-    cohort: initialCohort // <--- USES THE URL VALUE NOW
+    fullName: '', email: '', phone: '', address: '',
+    city: '', maritalStatus: '', occupation: '',
+    cohort: initialCohort
   });
 
-  // Update state if URL changes while on the page
+  // Helper to check if UK is selected
+  const isUK = formData.cohort === 'UK';
+
   useEffect(() => {
     const cohortParam = searchParams.get('cohort');
-    if (cohortParam && (cohortParam === 'Lagos' || cohortParam === 'Ilorin')) {
-      setFormData(prev => ({ ...prev, cohort: cohortParam }));
-    }
+    if (cohortParam) setFormData(prev => ({ ...prev, cohort: cohortParam }));
   }, [searchParams]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSuccess = async (reference) => {
-    setIsSaving(true);
+  // --- 1. PAYSTACK SUCCESS (LAGOS/ILORIN) ---
+  const handlePaystackSuccess = async (reference) => {
+    await saveRegistration({
+      ...formData,
+      paymentReference: reference.reference,
+      amountPaid: AMOUNT_NGN,
+      status: 'paid', // Auto-verified
+      currency: 'NGN'
+    }, '/success');
+  };
 
-    const finalData = {
-        ...formData,
-        paymentReference: reference.reference,
-        amountPaid: AMOUNT,
-        status: 'paid',
-        dateString: new Date().toISOString()
-    };
+  // --- 2. MANUAL SUBMIT (UK) ---
+  const handleUKSubmit = async (e) => {
+    e.preventDefault();
+    // Validate fields manually since we aren't using Paystack's form validation
+    if(!formData.fullName || !formData.email || !formData.phone) {
+        alert("Please fill in all required fields.");
+        return;
+    }
+
+    await saveRegistration({
+      ...formData,
+      paymentReference: 'PENDING_TRANSFER',
+      amountPaid: 20,
+      status: 'pending', // Manual verification needed
+      currency: 'GBP'
+    }, '/uk-success'); // Redirect to new UK page
+  };
+
+  // --- SHARED SAVE LOGIC ---
+  const saveRegistration = async (dataToSave, redirectPath) => {
+    setIsSaving(true);
+    const finalData = { ...dataToSave, dateString: new Date().toISOString() };
 
     try {
       await addDoc(collection(db, "students"), {
@@ -65,29 +82,24 @@ const RegisterPage = () => {
         body: JSON.stringify(finalData)
       });
 
-      navigate('/success');
+      navigate(redirectPath);
 
     } catch (error) {
       console.error(error);
       setIsSaving(false);
-      alert("Error saving registration. Please contact admin.");
+      alert("Error saving registration. Please check your connection.");
     }
   };
 
   const componentProps = {
     email: formData.email,
-    amount: AMOUNT * 100,
+    amount: AMOUNT_NGN * 100,
     publicKey: PUBLIC_KEY,
     subaccount: "ACCT_cpxpivjkswnoekf", // Your Subaccount Code
-    text: "PAY ₦" + AMOUNT.toLocaleString(),
-    onSuccess: handleSuccess,
+    text: "PAY ₦" + AMOUNT_NGN.toLocaleString(),
+    onSuccess: handlePaystackSuccess,
     onClose: () => console.log("Closed"),
-    metadata: {
-        custom_fields: [
-            { display_name: "Phone", variable_name: "phone", value: formData.phone },
-            { display_name: "Cohort", variable_name: "cohort", value: formData.cohort }
-        ]
-    }
+    metadata: { custom_fields: [{ display_name: "Cohort", variable_name: "cohort", value: formData.cohort }] }
   };
 
   return (
@@ -97,16 +109,15 @@ const RegisterPage = () => {
         <ArrowLeft size={20} /> Back to Home
       </Link>
 
+      {/* Processing Overlay */}
       {isSaving && (
-        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
-            <div className="bg-slate-900 border border-white/10 p-8 rounded-3xl flex flex-col items-center shadow-2xl">
-                <Loader2 size={48} className="text-blue-500 animate-spin mb-4" />
-                <h3 className="text-xl font-bold text-white">Processing Registration...</h3>
-                <p className="text-slate-400 text-sm mt-2">Please do not close this window.</p>
-            </div>
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center z-[100]">
+            <Loader2 size={48} className="text-blue-500 animate-spin mb-4" />
+            <h3 className="text-xl font-bold text-white">Processing Registration...</h3>
         </div>
       )}
 
+      {/* Background */}
       <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-3xl bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
@@ -117,12 +128,12 @@ const RegisterPage = () => {
         </div>
 
         <div className="p-8 md:p-10 space-y-8">
-
+            {/* Same Inputs as before (Name, Email, Phone, etc.) */}
             <div className="grid md:grid-cols-2 gap-4">
-                <input name="fullName" onChange={handleInputChange} required type="text" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" placeholder="Full Name" />
-                <input name="email" onChange={handleInputChange} required type="email" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" placeholder="Email Address" />
-                <input name="phone" onChange={handleInputChange} required type="tel" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" placeholder="Phone Number" />
-                <select name="maritalStatus" onChange={handleInputChange} required className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500">
+                <input name="fullName" value={formData.fullName} onChange={handleInputChange} required type="text" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none" placeholder="Full Name" />
+                <input name="email" value={formData.email} onChange={handleInputChange} required type="email" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none" placeholder="Email Address" />
+                <input name="phone" value={formData.phone} onChange={handleInputChange} required type="tel" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none" placeholder="Phone Number" />
+                <select name="maritalStatus" value={formData.maritalStatus} onChange={handleInputChange} required className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none">
                     <option value="">Marital Status...</option>
                     <option value="Single">Single</option>
                     <option value="Married">Married</option>
@@ -131,36 +142,53 @@ const RegisterPage = () => {
             </div>
 
             <div className="space-y-2">
-                 <input name="occupation" onChange={handleInputChange} required type="text" className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" placeholder="What do you do?" />
+                 <input name="occupation" value={formData.occupation} onChange={handleInputChange} required type="text" className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none" placeholder="What do you do?" />
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-                <input name="city" onChange={handleInputChange} required type="text" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" placeholder="City" />
-                <input name="address" onChange={handleInputChange} required type="text" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" placeholder="Address" />
+                <input name="city" value={formData.city} onChange={handleInputChange} required type="text" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none" placeholder="City" />
+                <input name="address" value={formData.address} onChange={handleInputChange} required type="text" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none" placeholder="Address" />
             </div>
 
-            {/* COHORT SELECTION: Now controlled by each state */}
-            <div className="grid grid-cols-2 gap-4">
-                <label className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all ${formData.cohort === 'Lagos' ? 'bg-blue-600/20 border-blue-500' : 'bg-slate-950 border-white/10 hover:border-white/30'}`}>
-                    <input type="radio" name="cohort" value="Lagos" checked={formData.cohort === 'Lagos'} onChange={handleInputChange} className="hidden" />
-                    <span className="font-bold text-white">LAGOS</span>
-                    <span className="text-xs text-slate-400">March 2026</span>
-                </label>
-                <label className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all ${formData.cohort === 'Ilorin' ? 'bg-purple-600/20 border-purple-500' : 'bg-slate-950 border-white/10 hover:border-white/30'}`}>
-                    <input type="radio" name="cohort" value="Ilorin" checked={formData.cohort === 'Ilorin'} onChange={handleInputChange} className="hidden" />
-                    <span className="font-bold text-white">ILORIN</span>
-                    <span className="text-xs text-slate-400">July 2026</span>
+            {/* UPDATED COHORT SELECTION (3 GRID ITEMS) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {['Lagos', 'Ilorin'].map((c) => (
+                    <label key={c} className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center justify-center gap-1 transition-all ${formData.cohort === c ? 'bg-blue-600/20 border-blue-500' : 'bg-slate-950 border-white/10 hover:border-white/30'}`}>
+                        <input type="radio" name="cohort" value={c} checked={formData.cohort === c} onChange={handleInputChange} className="hidden" />
+                        <span className="font-bold text-white uppercase">{c}</span>
+                        <span className="text-[10px] text-slate-400">{c === 'Lagos' ? 'March' : 'July'} 2026</span>
+                    </label>
+                ))}
+
+                {/* UK OPTION */}
+                <label className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center justify-center gap-1 transition-all ${isUK ? 'bg-red-600/20 border-red-500' : 'bg-slate-950 border-white/10 hover:border-white/30'}`}>
+                    <input type="radio" name="cohort" value="UK" checked={isUK} onChange={handleInputChange} className="hidden" />
+                    <span className="font-bold text-white flex items-center gap-2"><Globe size={14}/> UK</span>
+                    <span className="text-[10px] text-slate-400">May 2026</span>
                 </label>
             </div>
 
-            <PaystackButton
-                {...componentProps}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black text-lg py-5 rounded-xl shadow-lg transform transition-all active:scale-[0.98] flex justify-center items-center gap-3"
-            />
-
-            <p className="text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-                <AlertCircle size={12}/> Secured by Paystack
-            </p>
+            {/* DYNAMIC ACTION BUTTON */}
+            {isUK ? (
+                // UK: MANUAL SUBMIT BUTTON
+                <button
+                    onClick={handleUKSubmit}
+                    className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white font-black text-lg py-5 rounded-xl shadow-lg transform transition-all active:scale-[0.98] flex justify-center items-center gap-3"
+                >
+                    SUBMIT REGISTRATION (£20)
+                </button>
+            ) : (
+                // NIGERIA: PAYSTACK BUTTON
+                <div className="space-y-2">
+                    <PaystackButton
+                        {...componentProps}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black text-lg py-5 rounded-xl shadow-lg transform transition-all active:scale-[0.98] flex justify-center items-center gap-3"
+                    />
+                    <p className="text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+                        <AlertCircle size={12}/> Secured by Paystack
+                    </p>
+                </div>
+            )}
 
         </div>
       </div>

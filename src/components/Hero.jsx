@@ -24,8 +24,8 @@ const Hero = () => {
     {
       id: 2,
       image: hero2,
-      title: "LAGOS & ILORIN 2026",
-      subtitle: "Two locations. One mandate. Get ready."
+      title: "LAGOS, ILORIN & UK 2026",
+      subtitle: "Three locations. One mandate. Get ready."
     },
     {
       id: 3,

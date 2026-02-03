@@ -1,24 +1,25 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+
+// IMPORT YOUR PAGES
 import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import Dashboard from './pages/Dashboard';
 import RegisterPage from './pages/RegisterPage';
 import SuccessPage from './pages/SuccessPage';
+import Dashboard from './pages/Dashboard';
+import UKSuccessPage from './pages/UKSuccessPage'; // <--- 1. IMPORT THIS
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Route */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/success" element={<SuccessPage />} />
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/success" element={<SuccessPage />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<LoginPage />} />
-        <Route path="/admin/dashboard" element={<Dashboard />} />
-      </Routes>
-    </Router>
+      {/* 2. ADD THIS NEW ROUTE */}
+      <Route path="/uk-success" element={<UKSuccessPage />} />
+
+      <Route path="/dashboard" element={<Dashboard />} />
+    </Routes>
   );
 }
 

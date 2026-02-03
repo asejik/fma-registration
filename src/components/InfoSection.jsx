@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { MapPin, Calendar, Clock, ArrowRight, X, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-// Receive the prop here
 const InfoSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -36,7 +35,7 @@ const InfoSection = () => {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-600/10 blur-[100px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 relative z-10">
+      <div className="max-w-[85rem] mx-auto px-4 relative z-10">
 
         {/* 1. Brief Intro Preview */}
         <div className="mb-20 text-center max-w-4xl mx-auto">
@@ -66,29 +65,27 @@ const InfoSection = () => {
           </button>
         </div>
 
-        {/* 2. The Cohort Cards (Grid Layout) */}
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+        {/* 2. The Cohort Cards (Updated to 3 Columns) */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
 
           {/* Card 1: Lagos */}
           <div className="group relative p-1 rounded-3xl bg-gradient-to-br from-orange-500 to-pink-600 hover:scale-[1.02] transition-transform duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-pink-600 blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
 
-            <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-[22px] p-8 md:p-10 border border-white/10 overflow-hidden">
+            <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-[22px] p-8 border border-white/10 overflow-hidden flex flex-col">
               <div className="absolute top-0 right-0 p-6 opacity-10">
-                <MapPin size={120} />
+                <MapPin size={100} />
               </div>
 
-              <div className="inline-block px-4 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold tracking-widest mb-6 border border-orange-500/30">
+              <div className="inline-block self-start px-4 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold tracking-widest mb-6 border border-orange-500/30">
                 COHORT 01
               </div>
 
-              <h4 className="text-3xl font-black text-white mb-2">LAGOS</h4>
-              {/* REMOVED: Center of Excellence */}
-              <div className="mb-8" />
+              <h4 className="text-3xl font-black text-white mb-8">LAGOS</h4>
 
-              <div className="space-y-4">
+              <div className="space-y-4 mb-8 flex-grow">
                 <div className="flex items-center gap-4 text-slate-200">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-orange-400">
+                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-orange-400 shrink-0">
                     <Calendar size={20} />
                   </div>
                   <div>
@@ -98,7 +95,7 @@ const InfoSection = () => {
                 </div>
 
                 <div className="flex items-center gap-4 text-slate-200">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-orange-400">
+                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-orange-400 shrink-0">
                     <Clock size={20} />
                   </div>
                   <div>
@@ -108,10 +105,9 @@ const InfoSection = () => {
                 </div>
               </div>
 
-              {/* LAGOS CARD BUTTON */}
               <Link
-                to="/register"
-                className="w-full mt-8 pt-8 border-t border-white/10 flex items-center gap-2 text-orange-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
+                to="/register?cohort=Lagos"
+                className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-orange-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
               >
                 Register for Lagos <ArrowRight size={16} />
               </Link>
@@ -122,22 +118,20 @@ const InfoSection = () => {
           <div className="group relative p-1 rounded-3xl bg-gradient-to-br from-cyan-400 to-blue-600 hover:scale-[1.02] transition-transform duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-blue-600 blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
 
-            <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-[22px] p-8 md:p-10 border border-white/10 overflow-hidden">
+            <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-[22px] p-8 border border-white/10 overflow-hidden flex flex-col">
               <div className="absolute top-0 right-0 p-6 opacity-10">
-                <MapPin size={120} />
+                <MapPin size={100} />
               </div>
 
-              <div className="inline-block px-4 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-bold tracking-widest mb-6 border border-cyan-500/30">
+              <div className="inline-block self-start px-4 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-bold tracking-widest mb-6 border border-cyan-500/30">
                 COHORT 02
               </div>
 
-              <h4 className="text-3xl font-black text-white mb-2">ILORIN</h4>
-              {/* REMOVED: State of Harmony */}
-              <div className="mb-8" />
+              <h4 className="text-3xl font-black text-white mb-8">ILORIN</h4>
 
-              <div className="space-y-4">
+              <div className="space-y-4 mb-8 flex-grow">
                 <div className="flex items-center gap-4 text-slate-200">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-cyan-400">
+                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-cyan-400 shrink-0">
                     <Calendar size={20} />
                   </div>
                   <div>
@@ -147,7 +141,7 @@ const InfoSection = () => {
                 </div>
 
                 <div className="flex items-center gap-4 text-slate-200">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-cyan-400">
+                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-cyan-400 shrink-0">
                     <Clock size={20} />
                   </div>
                   <div>
@@ -157,20 +151,66 @@ const InfoSection = () => {
                 </div>
               </div>
 
-              {/* UPDATED BUTTON */}
               <Link
                 to="/register?cohort=Ilorin"
-                className="w-full mt-8 pt-8 border-t border-white/10 flex items-center gap-2 text-cyan-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
+                className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-cyan-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
               >
                 Register for Ilorin <ArrowRight size={16} />
               </Link>
             </div>
           </div>
+
+          {/* Card 3: United Kingdom (NEW) */}
+          <div className="group relative p-1 rounded-3xl bg-gradient-to-br from-red-600 to-blue-800 hover:scale-[1.02] transition-transform duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-blue-800 blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
+
+            <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-[22px] p-8 border border-white/10 overflow-hidden flex flex-col">
+              <div className="absolute top-0 right-0 p-6 opacity-10">
+                <MapPin size={100} />
+              </div>
+
+              <div className="inline-block self-start px-4 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-bold tracking-widest mb-6 border border-red-500/30">
+                COHORT 03
+              </div>
+
+              <h4 className="text-3xl font-black text-white mb-8">UNITED KINGDOM</h4>
+
+              <div className="space-y-4 mb-8 flex-grow">
+                <div className="flex items-center gap-4 text-slate-200">
+                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-red-400 shrink-0">
+                    <Calendar size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-bold">Dates</p>
+                    <p className="font-semibold">May 4th - 9th, 2026</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 text-slate-200">
+                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-red-400 shrink-0">
+                    <Clock size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-bold">Schedule</p>
+                    <p className="font-semibold">Mon - Sat (9am - 6pm)</p>
+                  </div>
+                </div>
+              </div>
+
+              <Link
+                to="/register?cohort=UK"
+                className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-red-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
+              >
+                Register for UK <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* Enquiry Section - Added below the buttons */}
-      <div className="mt-10 pt-6 border-t border-white/10 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+      {/* Enquiry Section */}
+      <div className="mt-16 pt-6 border-t border-white/10 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
         <p className="text-slate-400 text-sm mb-2 font-medium tracking-wide">
           Have questions? Call for enquiries:
         </p>
@@ -185,7 +225,7 @@ const InfoSection = () => {
         </a>
       </div>
 
-      {/* FULL BRIEF MODAL (Kept exactly as it was) */}
+      {/* FULL BRIEF MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
