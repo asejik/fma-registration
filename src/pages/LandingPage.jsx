@@ -13,7 +13,7 @@ const LandingPage = () => {
       {/* REMOVED: RegistrationForm */}
 
       <footer className="py-8 bg-black text-center text-slate-600 text-sm">
-        <p>&copy; 2026 Freedom Ministry Academy. All rights reserved.</p>
+        <p>&copy; 2026 Freedom Ministry Academy | All rights reserved.</p>
       </footer>
     </div>
   );

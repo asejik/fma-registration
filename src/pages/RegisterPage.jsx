@@ -139,7 +139,7 @@ const RegisterPage = () => {
                 <input name="address" onChange={handleInputChange} required type="text" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" placeholder="Address" />
             </div>
 
-            {/* COHORT SELECTION: Now controlled by state */}
+            {/* COHORT SELECTION: Now controlled by each state */}
             <div className="grid grid-cols-2 gap-4">
                 <label className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all ${formData.cohort === 'Lagos' ? 'bg-blue-600/20 border-blue-500' : 'bg-slate-950 border-white/10 hover:border-white/30'}`}>
                     <input type="radio" name="cohort" value="Lagos" checked={formData.cohort === 'Lagos'} onChange={handleInputChange} className="hidden" />
