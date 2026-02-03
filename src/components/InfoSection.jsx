@@ -192,7 +192,7 @@ const InfoSection = () => {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 uppercase font-bold">Schedule</p>
-                    <p className="font-semibold">Mon - Sat (9am - 6pm)</p>
+                    <p className="font-semibold">Mon - Sat (9am - 4pm)</p>
                   </div>
                 </div>
               </div>
