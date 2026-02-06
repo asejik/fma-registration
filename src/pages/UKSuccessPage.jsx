@@ -6,7 +6,6 @@ import Navbar from '../components/Navbar';
 const UKSuccessPage = () => {
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
-    // You might want to use a toast notification here instead of alert in production
     // alert("Copied to clipboard!");
   };
 
@@ -33,13 +32,18 @@ const UKSuccessPage = () => {
           </p>
 
           {/* BANK DETAILS CARD */}
-          {/* FIX: Changed padding from 'p-6' to 'pt-16 pb-6 px-6' to make room for the badge */}
           <div className="bg-slate-950 border border-white/10 rounded-xl pt-16 pb-6 px-6 mb-8 relative group hover:border-blue-500/30 transition-colors overflow-hidden">
             <div className="absolute top-0 right-0 p-3 bg-gradient-to-r from-red-600 to-blue-800 text-white text-xs font-bold rounded-bl-2xl shadow-lg">
               CLC UK ACCOUNT
             </div>
 
             <div className="space-y-5 text-sm">
+              {/* NEW: Account Name */}
+              <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                <span className="text-slate-400 font-medium uppercase tracking-wider text-xs">Account Name</span>
+                <span className="text-white font-bold text-base text-right">Citizens of Light Church</span>
+              </div>
+
               <div className="flex justify-between items-center border-b border-white/5 pb-3">
                 <span className="text-slate-400 font-medium uppercase tracking-wider text-xs">Bank Name</span>
                 <span className="text-white font-bold text-base">Metro Bank</span>
