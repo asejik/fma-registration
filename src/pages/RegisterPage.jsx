@@ -10,47 +10,55 @@ const RegisterPage = () => {
   const [searchParams] = useSearchParams();
   const [isSaving, setIsSaving] = useState(false);
 
+  // AUTOMATED CLOSURE SCRIPT: Evaluates to true after 11:59 PM WAT on Feb 27, 2026
+  const isLagosClosed = new Date() > new Date('2026-02-27T23:59:59+01:00');
+
   // CONFIGURATION
   const AMOUNT_NGN = 20000;
   const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfpjqsOc92UOMikXJH9z7kiPJH48EI3bhu3mHGoVaHC4Plha4HIiqyIsQciBxOJcZqbQ/exec";
 
-  // Default shifted to Ilorin due to Lagos closure
-  const initialCohort = searchParams.get('cohort') === 'UK' ? 'UK' : 'Ilorin';
+  // Dynamic initialization logic
+  let defaultCohort = searchParams.get('cohort') || (isLagosClosed ? 'Ilorin' : 'Lagos');
+  if (isLagosClosed && defaultCohort === 'Lagos') {
+      defaultCohort = 'Ilorin'; // Force fallback if they use an old URL post-deadline
+  }
 
   const [formData, setFormData] = useState({
     fullName: '', email: '', phone: '', address: '',
     city: '', maritalStatus: '', occupation: '',
-    cohort: initialCohort
+    cohort: defaultCohort
   });
 
-  // Helper to check if UK is selected
   const isUK = formData.cohort === 'UK';
 
   useEffect(() => {
     const cohortParam = searchParams.get('cohort');
-    if (cohortParam) setFormData(prev => ({ ...prev, cohort: cohortParam }));
-  }, [searchParams]);
+    if (cohortParam) {
+      if (isLagosClosed && cohortParam === 'Lagos') {
+         setFormData(prev => ({ ...prev, cohort: 'Ilorin' }));
+      } else {
+         setFormData(prev => ({ ...prev, cohort: cohortParam }));
+      }
+    }
+  }, [searchParams, isLagosClosed]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- 1. PAYSTACK SUCCESS (LAGOS/ILORIN) ---
   const handlePaystackSuccess = async (reference) => {
     await saveRegistration({
       ...formData,
       paymentReference: reference.reference,
       amountPaid: AMOUNT_NGN,
-      status: 'paid', // Auto-verified
+      status: 'paid',
       currency: 'NGN'
     }, '/success');
   };
 
-  // --- 2. MANUAL SUBMIT (UK) ---
   const handleUKSubmit = async (e) => {
     e.preventDefault();
-    // Validate fields manually since we aren't using Paystack's form validation
     if(!formData.fullName || !formData.email || !formData.phone) {
         alert("Please fill in all required fields.");
         return;
@@ -60,12 +68,11 @@ const RegisterPage = () => {
       ...formData,
       paymentReference: 'PENDING_TRANSFER',
       amountPaid: 20,
-      status: 'pending', // Manual verification needed
+      status: 'pending',
       currency: 'GBP'
-    }, '/uk-success'); // Redirect to new UK page
+    }, '/uk-success');
   };
 
-  // --- SHARED SAVE LOGIC ---
   const saveRegistration = async (dataToSave, redirectPath) => {
     setIsSaving(true);
     const finalData = { ...dataToSave, dateString: new Date().toISOString() };
@@ -96,7 +103,7 @@ const RegisterPage = () => {
     email: formData.email,
     amount: AMOUNT_NGN * 100,
     publicKey: PUBLIC_KEY,
-    subaccount: "ACCT_cpxpivjkswnoekf", // Your Subaccount Code
+    subaccount: "ACCT_cpxpivjkswnoekf",
     text: "PAY ₦" + AMOUNT_NGN.toLocaleString(),
     onSuccess: handlePaystackSuccess,
     onClose: () => console.log("Closed"),
@@ -110,7 +117,6 @@ const RegisterPage = () => {
         <ArrowLeft size={20} /> Back to Home
       </Link>
 
-      {/* Processing Overlay */}
       {isSaving && (
         <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center z-[100]">
             <Loader2 size={48} className="text-blue-500 animate-spin mb-4" />
@@ -118,7 +124,6 @@ const RegisterPage = () => {
         </div>
       )}
 
-      {/* Background */}
       <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-3xl bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
@@ -129,7 +134,6 @@ const RegisterPage = () => {
         </div>
 
         <div className="p-8 md:p-10 space-y-8">
-            {/* Same Inputs as before (Name, Email, Phone, etc.) */}
             <div className="grid md:grid-cols-2 gap-4">
                 <input name="fullName" value={formData.fullName} onChange={handleInputChange} required type="text" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none" placeholder="Full Name" />
                 <input name="email" value={formData.email} onChange={handleInputChange} required type="email" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none" placeholder="Email Address" />
@@ -151,10 +155,10 @@ const RegisterPage = () => {
                 <input name="address" value={formData.address} onChange={handleInputChange} required type="text" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none" placeholder="Address" />
             </div>
 
-            {/* UPDATED COHORT SELECTION (3 GRID ITEMS) */}
+            {/* AUTOMATED TIME-BASED RENDER */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {['Lagos', 'Ilorin'].map((c) => {
-                    const isClosed = c === 'Lagos'; // Flag to lock Lagos
+                    const isClosed = c === 'Lagos' && isLagosClosed;
 
                     return (
                         <label
@@ -184,7 +188,6 @@ const RegisterPage = () => {
                     );
                 })}
 
-                {/* UK OPTION */}
                 <label className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center justify-center gap-1 transition-all ${isUK ? 'bg-red-600/20 border-red-500' : 'bg-slate-950 border-white/10 hover:border-white/30'}`}>
                     <input type="radio" name="cohort" value="UK" checked={isUK} onChange={handleInputChange} className="hidden" />
                     <span className="font-bold text-white flex items-center gap-2"><Globe size={14}/> UK</span>
@@ -192,9 +195,7 @@ const RegisterPage = () => {
                 </label>
             </div>
 
-            {/* DYNAMIC ACTION BUTTON */}
             {isUK ? (
-                // UK: MANUAL SUBMIT BUTTON
                 <button
                     onClick={handleUKSubmit}
                     className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white font-black text-lg py-5 rounded-xl shadow-lg transform transition-all active:scale-[0.98] flex justify-center items-center gap-3"
@@ -202,7 +203,6 @@ const RegisterPage = () => {
                     SUBMIT REGISTRATION (£20)
                 </button>
             ) : (
-                // NIGERIA: PAYSTACK BUTTON
                 <div className="space-y-2">
                     <PaystackButton
                         {...componentProps}

@@ -5,20 +5,23 @@ import { Link } from 'react-router-dom';
 const InfoSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // AUTOMATED CLOSURE SCRIPT: Evaluates to true after 11:59 PM WAT on Feb 27, 2026
+  const isLagosClosed = new Date() > new Date('2026-02-27T23:59:59+01:00');
+
   // The Full Text
   const fullText = (
     <div className="space-y-6 text-lg text-slate-300 leading-relaxed font-light text-left">
       <p>
-        Welcome to <strong className="text-white">FREEDOM MINISTRY ACADEMY</strong>, a place where divine purpose meets intentional preparation. This is more than a class, more than a program, and more than a gathering of believers—it is a spiritual training ground where God shapes men and women for Kingdom assignment.
+        Welcome to <strong className="text-white">FREEDOM MINISTRY ACADEMY</strong>, a place where divine purpose meets intentional preparation. This is more than a class, more than a program, and more than a gathering of believers - it is a spiritual training ground where God shapes men and women for Kingdom assignment.
       </p>
       <p>
-        In order for us to fulfil everything that God has ordained for us, a great sense of intentionality has to be engaged. Throughout Scripture, every man God used greatly was first formed privately before being revealed publicly. Moses had his wilderness, David had his fields, Paul had Arabia, and even Jesus was prepared for thirty years for a three-and-a-half-year ministry. <strong className="text-white">Preparation is God’s pattern</strong>, and training is His system for raising vessels that can carry His power, His wisdom, and His agenda.
+        In order for us to fulfil everything that God has ordained for us, a great sense of intentionality has to be engaged. Throughout Scripture, every man God used greatly was first formed privately before being revealed publicly. Moses had his wilderness, David had his fields, Paul had Arabia, and even Jesus was prepared for thirty years for a three-and-a-half-year ministry. <strong className="text-white">Preparation is God's pattern</strong>, and training is His system for raising vessels that can carry His power, His wisdom, and His agenda.
       </p>
       <p>
-        Freedom Ministry Academy exists to equip, refine, and activate believers who sense a calling—whether into the five-fold ministry, leadership, or simply deeper service in the house of God. Here, we learn not just to work for God, but to walk with God and function with spiritual intelligence.
+        Freedom Ministry Academy exists to equip, refine, and activate believers who sense a calling - whether into the five-fold ministry, leadership, or simply deeper service in the house of God. Here, we learn not just to work for God, but to walk with God and function with spiritual intelligence.
       </p>
       <p>
-        In this atmosphere, you will be stretched, challenged, instructed, and transformed. You will grow in doctrine, discipline, character, and ministry skill. You will interact with the Scriptures, the Spirit, and seasoned teachers who are committed to raising you into the fullness of God’s call over your life.
+        In this atmosphere, you will be stretched, challenged, instructed, and transformed. You will grow in doctrine, discipline, character, and ministry skill. You will interact with the Scriptures, the Spirit, and seasoned teachers who are committed to raising you into the fullness of God's call over your life.
       </p>
       <p>
         We believe that an equipped Christian is an effective Christian, and a trained servant produces lasting Kingdom impact. As you journey through this school, come with a heart of humility, hunger, and expectation. God is set to enlarge your capacity, deepen your conviction, and impart grace for effective ministry.
@@ -51,7 +54,7 @@ const InfoSection = () => {
 
           <div className="text-lg text-slate-300 leading-relaxed font-light mb-8">
             <p>
-              Welcome to <strong className="text-white">FREEDOM MINISTRY ACADEMY</strong>, a place where divine purpose meets intentional preparation. This is more than a class, more than a program, and more than a gathering of believers—it is a spiritual training ground where God shapes men and women for Kingdom assignment...
+              Welcome to <strong className="text-white">FREEDOM MINISTRY ACADEMY</strong>, a place where divine purpose meets intentional preparation. This is more than a class, more than a program, and more than a gathering of believers - it is a spiritual training ground where God shapes men and women for Kingdom assignment...
             </p>
           </div>
 
@@ -65,7 +68,7 @@ const InfoSection = () => {
           </button>
         </div>
 
-        {/* 2. The Cohort Cards (Updated to 3 Columns) */}
+        {/* 2. The Cohort Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
 
           {/* Card 1: Lagos */}
@@ -105,19 +108,19 @@ const InfoSection = () => {
                 </div>
               </div>
 
-              {/* --- ACTIVE LAGOS LINK COMMENTED OUT FOR SOFT CLOSURE ---
-              <Link
-                to="/register?cohort=Lagos"
-                className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-orange-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
-              >
-                Register for Lagos <ArrowRight size={16} />
-              </Link>
-              */}
-
-              {/* --- NEW DRIFT: CLOSED BADGE --- */}
-              <div className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-slate-500 font-bold text-sm uppercase tracking-wide cursor-not-allowed">
-                Registration Closed
-              </div>
+              {/* DYNAMIC TIME-BASED RENDER */}
+              {!isLagosClosed ? (
+                <Link
+                  to="/register?cohort=Lagos"
+                  className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-orange-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
+                >
+                  Register for Lagos <ArrowRight size={16} />
+                </Link>
+              ) : (
+                <div className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-slate-500 font-bold text-sm uppercase tracking-wide cursor-not-allowed">
+                  Registration Closed
+                </div>
+              )}
             </div>
           </div>
 
@@ -167,7 +170,7 @@ const InfoSection = () => {
             </div>
           </div>
 
-          {/* Card 3: United Kingdom (NEW) */}
+          {/* Card 3: United Kingdom */}
           <div className="group relative p-1 rounded-3xl bg-gradient-to-br from-red-600 to-blue-800 hover:scale-[1.02] transition-transform duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-blue-800 blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
 
