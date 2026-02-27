@@ -105,12 +105,19 @@ const InfoSection = () => {
                 </div>
               </div>
 
+              {/* --- ACTIVE LAGOS LINK COMMENTED OUT FOR SOFT CLOSURE ---
               <Link
                 to="/register?cohort=Lagos"
                 className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-orange-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
               >
                 Register for Lagos <ArrowRight size={16} />
               </Link>
+              */}
+
+              {/* --- NEW DRIFT: CLOSED BADGE --- */}
+              <div className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-slate-500 font-bold text-sm uppercase tracking-wide cursor-not-allowed">
+                Registration Closed
+              </div>
             </div>
           </div>
 

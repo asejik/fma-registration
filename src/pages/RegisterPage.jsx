@@ -15,7 +15,8 @@ const RegisterPage = () => {
   const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfpjqsOc92UOMikXJH9z7kiPJH48EI3bhu3mHGoVaHC4Plha4HIiqyIsQciBxOJcZqbQ/exec";
 
-  const initialCohort = searchParams.get('cohort') || 'Lagos';
+  // Default shifted to Ilorin due to Lagos closure
+  const initialCohort = searchParams.get('cohort') === 'UK' ? 'UK' : 'Ilorin';
 
   const [formData, setFormData] = useState({
     fullName: '', email: '', phone: '', address: '',
@@ -152,13 +153,36 @@ const RegisterPage = () => {
 
             {/* UPDATED COHORT SELECTION (3 GRID ITEMS) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {['Lagos', 'Ilorin'].map((c) => (
-                    <label key={c} className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center justify-center gap-1 transition-all ${formData.cohort === c ? 'bg-blue-600/20 border-blue-500' : 'bg-slate-950 border-white/10 hover:border-white/30'}`}>
-                        <input type="radio" name="cohort" value={c} checked={formData.cohort === c} onChange={handleInputChange} className="hidden" />
-                        <span className="font-bold text-white uppercase">{c}</span>
-                        <span className="text-[10px] text-slate-400">{c === 'Lagos' ? 'March' : 'July'} 2026</span>
-                    </label>
-                ))}
+                {['Lagos', 'Ilorin'].map((c) => {
+                    const isClosed = c === 'Lagos'; // Flag to lock Lagos
+
+                    return (
+                        <label
+                            key={c}
+                            className={`border rounded-xl p-4 flex flex-col items-center justify-center gap-1 transition-all
+                                ${isClosed ? 'opacity-40 cursor-not-allowed bg-slate-950 border-white/5'
+                                : formData.cohort === c ? 'bg-blue-600/20 border-blue-500 cursor-pointer'
+                                : 'bg-slate-950 border-white/10 hover:border-white/30 cursor-pointer'}`
+                            }
+                        >
+                            <input
+                                type="radio"
+                                name="cohort"
+                                value={c}
+                                checked={formData.cohort === c}
+                                onChange={handleInputChange}
+                                className="hidden"
+                                disabled={isClosed}
+                            />
+                            <span className={`font-bold uppercase ${isClosed ? 'text-slate-500 line-through' : 'text-white'}`}>
+                                {c}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-bold">
+                                {isClosed ? 'CLOSED' : 'July 2026'}
+                            </span>
+                        </label>
+                    );
+                })}
 
                 {/* UK OPTION */}
                 <label className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center justify-center gap-1 transition-all ${isUK ? 'bg-red-600/20 border-red-500' : 'bg-slate-950 border-white/10 hover:border-white/30'}`}>
