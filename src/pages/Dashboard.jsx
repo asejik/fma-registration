@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../services/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { Users, TrendingUp, Calendar, CreditCard } from 'lucide-react';
+import { Users, TrendingUp, Calendar, CreditCard, Filter } from 'lucide-react';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -9,10 +9,14 @@ const Dashboard = () => {
     totalRevenue: 0,
     waitlistCount: 0,
     lagosCount: 0,
-    ilorinCount: 0
+    ilorinCount: 0,
+    ukCount: 0
   });
-  const [recentStudents, setRecentStudents] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // NEW: State for the active filter
+  const [filterCohort, setFilterCohort] = useState('All');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,16 +34,18 @@ const Dashboard = () => {
         const revenue = students.reduce((acc, curr) => acc + (curr.amountPaid || 0), 0);
         const lagos = students.filter(s => s.cohort === 'Lagos').length;
         const ilorin = students.filter(s => s.cohort === 'Ilorin').length;
+        const uk = students.filter(s => s.cohort === 'UK').length;
 
         setStats({
           totalPaid: students.length,
           totalRevenue: revenue,
           waitlistCount: waitlistSnapshot.size,
           lagosCount: lagos,
-          ilorinCount: ilorin
+          ilorinCount: ilorin,
+          ukCount: uk
         });
 
-        setRecentStudents(students.slice(0, 5)); // Show last 5 paid students
+        setAllStudents(students);
 
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -50,6 +56,11 @@ const Dashboard = () => {
 
     fetchData();
   }, []);
+
+  // NEW: Derive filtered students based on selected cohort
+  const filteredStudents = filterCohort === 'All'
+    ? allStudents
+    : allStudents.filter(student => student.cohort === filterCohort);
 
   if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Dashboard...</div>;
 
@@ -82,18 +93,35 @@ const Dashboard = () => {
             <StatCard title="Total Revenue" value={`₦${stats.totalRevenue.toLocaleString()}`} icon={CreditCard} color="bg-green-500" />
             <StatCard title="Paid Students" value={stats.totalPaid} icon={Users} color="bg-blue-500" />
             <StatCard title="Waitlist Leads" value={stats.waitlistCount} icon={Calendar} color="bg-purple-500" />
-            <StatCard title="Lagos vs Ilorin" value={`${stats.lagosCount} / ${stats.ilorinCount}`} icon={TrendingUp} color="bg-orange-500" />
+            <StatCard title="Lagos / Ilorin / UK" value={`${stats.lagosCount} / ${stats.ilorinCount} / ${stats.ukCount}`} icon={TrendingUp} color="bg-orange-500" />
         </div>
 
-        {/* Recent Paid Students Table */}
+        {/* Paid Students Table */}
         <div className="bg-slate-900 border border-white/5 rounded-2xl overflow-hidden">
-            <div className="p-6 border-b border-white/5">
-                <h3 className="font-bold text-white">Recent Paid Registrations</h3>
+            {/* NEW: Filter Header */}
+            <div className="p-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h3 className="font-bold text-white">Paid Registrations</h3>
+
+                <div className="flex items-center gap-3">
+                    <Filter size={16} className="text-slate-400" />
+                    <select
+                        value={filterCohort}
+                        onChange={(e) => setFilterCohort(e.target.value)}
+                        className="bg-slate-950 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+                    >
+                        <option value="All">All Locations</option>
+                        <option value="Lagos">Lagos Only</option>
+                        <option value="Ilorin">Ilorin Only</option>
+                        <option value="UK">UK Only</option>
+                    </select>
+                </div>
             </div>
+
             <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-slate-400">
                     <thead className="bg-slate-950 text-slate-200 uppercase tracking-wider font-bold">
                         <tr>
+                            <th className="p-4">S/N</th>
                             <th className="p-4">Name</th>
                             <th className="p-4">Email</th>
                             <th className="p-4">Cohort</th>
@@ -102,22 +130,32 @@ const Dashboard = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                        {recentStudents.map((student) => (
+                        {filteredStudents.map((student, index) => (
                             <tr key={student.id} className="hover:bg-white/5 transition-colors">
+                                <td className="p-4 font-mono text-slate-500">{index + 1}</td>
                                 <td className="p-4 font-medium text-white">{student.fullName}</td>
                                 <td className="p-4">{student.email}</td>
                                 <td className="p-4">
-                                    <span className={`px-2 py-1 rounded text-xs font-bold ${student.cohort === 'Lagos' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                                    <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                        student.cohort === 'Lagos' ? 'bg-blue-500/20 text-blue-400' :
+                                        student.cohort === 'UK' ? 'bg-red-500/20 text-red-400' :
+                                        'bg-purple-500/20 text-purple-400'
+                                    }`}>
                                         {student.cohort}
                                     </span>
                                 </td>
-                                <td className="p-4 text-green-400">₦{student.amountPaid?.toLocaleString()}</td>
+                                <td className="p-4 text-green-400">
+                                    {student.cohort === 'UK' || student.currency === 'GBP' ? '£' : '₦'}
+                                    {student.amountPaid?.toLocaleString()}
+                                </td>
                                 <td className="p-4">{student.dateString ? new Date(student.dateString).toLocaleDateString() : 'N/A'}</td>
                             </tr>
                         ))}
-                        {recentStudents.length === 0 && (
+                        {filteredStudents.length === 0 && (
                             <tr>
-                                <td colSpan="5" className="p-8 text-center text-slate-500">No paid students yet.</td>
+                                <td colSpan="6" className="p-8 text-center text-slate-500">
+                                    No paid students found for this location.
+                                </td>
                             </tr>
                         )}
                     </tbody>

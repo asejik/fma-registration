@@ -9,8 +9,8 @@ const Countdown = () => {
   });
 
   useEffect(() => {
-    // Target: March 2nd, 2026 at 9:00 AM
-    const targetDate = new Date(2026, 2, 2, 9, 0, 0).getTime();
+    // Target Date
+    const targetDate = new Date("2026-05-04T09:00:00").getTime();
 
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
@@ -53,7 +53,7 @@ const Countdown = () => {
         {/* Label: Horizontal on Mobile, Vertical on Desktop (No Rotation) */}
         <div className="w-full md:w-auto text-center mb-4 md:mb-0 md:mr-6">
             <span className="text-slate-300 font-bold tracking-widest text-sm md:[writing-mode:vertical-rl] block">
-                STARTS IN
+                UK COHORT STARTS IN
             </span>
         </div>
 
