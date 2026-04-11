@@ -14,13 +14,11 @@ import {
 } from 'lucide-react';
 
 const RULES = [
-  { icon: '📋', text: '60 questions drawn randomly from a question pool.' },
   { icon: '⏱️', text: '30 minutes total time. The exam will auto-submit when time is up.' },
   { icon: '🎯', text: 'Each question carries equal marks. Total score is over 100.' },
   { icon: '🔀', text: 'You may navigate back and forth between questions at any time.' },
   { icon: '⚠️', text: 'Do not refresh or close the browser during the exam.' },
   { icon: '💡', text: 'Unanswered questions at the end will count as incorrect.' },
-  { icon: '🔴', text: 'The timer turns red when 5 minutes are remaining.' },
 ];
 
 const CbtWelcomePage = () => {
