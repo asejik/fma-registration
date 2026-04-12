@@ -19,7 +19,9 @@ import {
   LogOut,
   ShieldCheck,
   Trash2,
-  RotateCcw
+  RotateCcw,
+  AlertTriangle,
+  X
 } from 'lucide-react';
 
 // ─── CSV Export ────────────────────────────────────────────────────────────
@@ -139,6 +141,7 @@ const CbtAdminDashboard = () => {
   const [sortField, setSortField] = useState('submittedAt');
   const [sortDir, setSortDir] = useState('desc');
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ show: false, result: null, loading: false });
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -210,36 +213,34 @@ const CbtAdminDashboard = () => {
   }, [filtered]);
 
 
-  const handleDelete = async (result) => {
-    if (!window.confirm(`Are you sure you want to delete the result for ${result.fullName}? This will reset their exam status and allow them to retake the test.`)) return;
+  const handleDelete = (result) => {
+    setDeleteModal({ show: true, result, loading: false });
+  };
+
+  const confirmDelete = async () => {
+    const { result } = deleteModal;
+    if (!result) return;
 
     try {
-      setLoading(true);
+      setDeleteModal(prev => ({ ...prev, loading: true }));
       const uid = result.uid || result.id;
       
-      // 1. Delete the result doc
       await deleteDoc(doc(db, 'cbt_results', uid));
-      
-      // 2. Reset user's exam status
       await updateDoc(doc(db, 'cbt_users', uid), {
         hasTakenExam: false,
         lastScore: null
       });
 
-      // 3. Clear progress doc (if any)
       try {
           await deleteDoc(doc(db, 'cbt_progress', uid));
-      } catch (e) { /* ignore if not exists */ }
+      } catch (e) { /* ignore */ }
 
-      // 4. Update local state
       setResults(prev => prev.filter(r => (r.uid || r.id) !== uid));
-      
-      alert('Result deleted and user status reset successfully.');
+      setDeleteModal({ show: false, result: null, loading: false });
     } catch (err) {
       console.error('Delete error:', err);
-      alert('Failed to delete result. Please try again.');
-    } finally {
-      setLoading(false);
+      alert('Failed to delete. Please check your connection.');
+      setDeleteModal(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -473,6 +474,58 @@ const CbtAdminDashboard = () => {
         </div>
 
       </div>
+
+      {/* ── CUSTOM DELETE MODAL ─────────────────────────────────────── */}
+      {deleteModal.show && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300"
+            onClick={() => !deleteModal.loading && setDeleteModal({ show: false, result: null, loading: false })}
+          />
+          
+          <div className="relative bg-slate-900 border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 fade-in duration-300">
+            <button 
+              onClick={() => setDeleteModal({ show: false, result: null, loading: false })}
+              className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 rounded-full bg-red-500/15 border border-red-500/20 flex items-center justify-center mb-6">
+                <AlertTriangle size={40} className="text-red-500" />
+              </div>
+
+              <h2 className="text-2xl font-black text-white mb-2 tracking-tight">Are you sure?</h2>
+              <p className="text-slate-400 text-sm leading-relaxed mb-8">
+                You are about to delete the result for <span className="text-white font-bold">{deleteModal.result?.fullName}</span>. 
+                This will reset their exam status and allow them to <span className="text-red-400 font-bold underline decoration-red-500/30">retake the test</span> immediately.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <button
+                  disabled={deleteModal.loading}
+                  onClick={() => setDeleteModal({ show: false, result: null, loading: false })}
+                  className="flex-1 px-6 py-4 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-slate-300 font-bold text-sm transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={deleteModal.loading}
+                  onClick={confirmDelete}
+                  className="flex-1 px-6 py-4 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black text-sm transition-all shadow-lg shadow-red-900/20 flex items-center justify-center gap-2"
+                >
+                  {deleteModal.loading ? (
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    "Yes, Delete & Reset"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
