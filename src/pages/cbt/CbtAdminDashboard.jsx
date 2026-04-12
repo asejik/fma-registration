@@ -188,17 +188,6 @@ const CbtAdminDashboard = () => {
     navigate('/cbt/admin-login');
   };
 
-  if (authLoading || (isAdmin && loading)) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white gap-4">
-        <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-        <p className="text-slate-400 text-sm font-medium">Securing session...</p>
-      </div>
-    );
-  }
-
-  if (!isAdmin) return null;
-
   // ── Stats ──────────────────────────────────────────────────────────────
   const stats = useMemo(() => {
     if (!results.length) return null;
@@ -257,13 +246,17 @@ const CbtAdminDashboard = () => {
       <ChevronDown size={12} className="text-slate-600" />
     );
 
-  if (loading) {
+  // ── Early Returns (AFTER hooks) ─────────────────────────────────────────
+  if (authLoading || (isAdmin && loading)) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
-        Loading CBT Results…
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white gap-4">
+        <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+        <p className="text-slate-400 text-sm font-medium">Securing session...</p>
       </div>
     );
   }
+
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
