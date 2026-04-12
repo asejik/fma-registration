@@ -16,7 +16,7 @@ const RegisterPage = () => {
   // CONFIGURATION
   const AMOUNT_NGN = 20000;
   const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfpjqsOc92UOMikXJH9z7kiPJH48EI3bhu3mHGoVaHC4Plha4HIiqyIsQciBxOJcZqbQ/exec";
+  const GOOGLE_SCRIPT_URL = import.meta.env.VITE_REGISTRATION_SHEET_URL;
 
   // Dynamic initialization logic
   let defaultCohort = searchParams.get('cohort') || (isLagosClosed ? 'Ilorin' : 'Lagos');
