@@ -15,7 +15,7 @@ import {
 
 const RULES = [
   { icon: '⏱️', text: '30 minutes total time. The exam will auto-submit when time is up.' },
-  { icon: '🎯', text: 'Each question carries equal marks. Total score is over 100.' },
+  { icon: '🎯', text: 'Each question carries equal marks. Total score is 60.' },
   { icon: '🔀', text: 'You may navigate back and forth between questions at any time.' },
   { icon: '⚠️', text: 'Do not refresh or close the browser during the exam.' },
   { icon: '💡', text: 'Unanswered questions at the end will count as incorrect.' },
@@ -145,7 +145,7 @@ const CbtWelcomePage = () => {
             {[
               { label: 'Questions', value: '60', icon: <CheckCircle2 size={14} className="text-emerald-400" /> },
               { label: 'Duration', value: '30 mins', icon: <Clock size={14} className="text-yellow-400" /> },
-              { label: 'Total Score', value: '100%', icon: <AlertTriangle size={14} className="text-indigo-400" /> },
+              { label: 'Total Score', value: '60 Marks', icon: <AlertTriangle size={14} className="text-indigo-400" /> },
             ].map((stat) => (
               <div key={stat.label} className="bg-white/[0.04] border border-white/[0.06] rounded-2xl p-4 text-center">
                 <div className="flex justify-center mb-2">{stat.icon}</div>
