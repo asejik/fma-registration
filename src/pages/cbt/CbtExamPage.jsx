@@ -24,8 +24,7 @@ function calculateScore(questions, answers) {
   questions.forEach((q) => {
     if (answers[q.id] === q.answer) correct++;
   });
-  const raw = (correct / questions.length) * 100;
-  return { correct, total: questions.length, score: Math.round(raw) };
+  return { correct, total: questions.length, score: correct };
 }
 
 // ─── Utility: format seconds ───────────────────────────────────────────────

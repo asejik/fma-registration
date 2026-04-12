@@ -129,19 +129,9 @@ function exportPDF(data) {
   setTimeout(() => printWin.print(), 400);
 }
 
-// ─── Grade helper ─────────────────────────────────────────────────────────
-function gradeLabel(score) {
-  if (score >= 90) return { label: 'Distinction', cls: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/25' };
-  if (score >= 75) return { label: 'Credit', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25' };
-  if (score >= 60) return { label: 'Merit', cls: 'bg-blue-500/15 text-blue-300 border-blue-500/25' };
-  if (score >= 50) return { label: 'Pass', cls: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25' };
-  return { label: 'Fail', cls: 'bg-red-500/15 text-red-300 border-red-500/25' };
-}
-
-const COHORTS = ['All', 'Lagos', 'Ilorin', 'UK'];
-const GRADES = ['All', 'Distinction', 'Credit', 'Merit', 'Pass', 'Fail'];
-
 // ─── Component ─────────────────────────────────────────────────────────────
+const COHORTS = ['All', 'Lagos', 'Ilorin', 'UK'];
+
 const CbtAdminDashboard = () => {
   const navigate = useNavigate();
   const [results, setResults] = useState([]);
@@ -151,7 +141,6 @@ const CbtAdminDashboard = () => {
   
   const [search, setSearch] = useState('');
   const [cohortFilter, setCohortFilter] = useState('All');
-  const [gradeFilter, setGradeFilter] = useState('All');
   const [sortField, setSortField] = useState('submittedAt');
   const [sortDir, setSortDir] = useState('desc');
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -203,9 +192,6 @@ const CbtAdminDashboard = () => {
       );
     }
     if (cohortFilter !== 'All') data = data.filter((r) => r.cohort === cohortFilter);
-    if (gradeFilter !== 'All') {
-      data = data.filter((r) => gradeLabel(r.score || 0).label === gradeFilter);
-    }
 
     data.sort((a, b) => {
       let av = a[sortField] ?? '';
@@ -218,16 +204,17 @@ const CbtAdminDashboard = () => {
     });
 
     return data;
-  }, [results, search, cohortFilter, gradeFilter, sortField, sortDir]);
+  }, [results, search, cohortFilter, sortField, sortDir]);
 
   // ── Stats (Dynamic: changes as filters change) ────────────────────────
   const stats = useMemo(() => {
     if (!filtered.length) return { total: 0, avg: 0, highest: 0, passed: 0 };
-    const avg = Math.round(filtered.reduce((a, r) => a + (r.score || 0), 0) / filtered.length);
+    const avg = (filtered.reduce((a, r) => a + (r.score || 0), 0) / filtered.length).toFixed(1);
     const highest = Math.max(...filtered.map((r) => r.score || 0));
-    const passed = filtered.filter((r) => (r.score || 0) >= 50).length;
+    const passed = filtered.filter((r) => (r.score || 0) >= 30).length; // Pass is 30/60?
     return { total: filtered.length, avg, highest, passed };
   }, [filtered]);
+
 
   const handleDelete = async (result) => {
     if (!window.confirm(`Are you sure you want to delete the result for ${result.fullName}? This will reset their exam status and allow them to retake the test.`)) return;
@@ -392,15 +379,6 @@ const CbtAdminDashboard = () => {
             </select>
           </div>
 
-          {/* Grade filter */}
-          <select
-            value={gradeFilter}
-            onChange={(e) => setGradeFilter(e.target.value)}
-            className="bg-slate-950 border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
-          >
-            {GRADES.map((g) => <option key={g} value={g}>{g === 'All' ? 'All Grades' : g}</option>)}
-          </select>
-
           <span className="text-slate-500 text-xs ml-auto">
             {filtered.length} result{filtered.length !== 1 ? 's' : ''}
           </span>
@@ -418,7 +396,6 @@ const CbtAdminDashboard = () => {
                     { label: 'Email', field: 'email' },
                     { label: 'Cohort', field: 'cohort' },
                     { label: 'Score', field: 'score' },
-                    { label: 'Grade', field: null },
                     { label: 'Correct', field: 'correct' },
                     { label: 'Duration', field: 'durationSeconds' },
                     { label: 'Date & Time', field: 'submittedAt' },
@@ -444,7 +421,7 @@ const CbtAdminDashboard = () => {
                   const grade = gradeLabel(r.score || 0);
                   return (
                     <tr key={r.id} className="hover:bg-white/[0.025] transition-colors">
-                      <td className="px-4 py-3.5 text-slate-500 font-mono text-xs">{i + 1}</td>
+                      <td className="px-4 py-3.5 text-slate-400 font-mono text-xs">{i + 1}</td>
                       <td className="px-4 py-3.5 text-white font-semibold">{r.fullName || '-'}</td>
                       <td className="px-4 py-3.5 text-slate-400">{r.email || '-'}</td>
                       <td className="px-4 py-3.5">
@@ -457,13 +434,8 @@ const CbtAdminDashboard = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3.5">
-                        <span className={`text-base font-black ${(r.score || 0) >= 50 ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {r.score ?? '-'}%
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className={`text-xs font-bold px-2 py-1 rounded-md border ${grade.cls}`}>
-                          {grade.label}
+                        <span className={`text-base font-black ${(r.score || 0) >= 30 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {r.score ?? '-'}<span className="text-[10px] text-slate-500 ml-0.5">/ 60</span>
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-slate-400 text-xs">
