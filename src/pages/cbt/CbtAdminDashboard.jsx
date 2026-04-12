@@ -24,7 +24,7 @@ import {
 
 // ─── CSV Export ────────────────────────────────────────────────────────────
 function exportCSV(data) {
-  const headers = ['#', 'Full Name', 'Email', 'Cohort', 'Score (%)', 'Correct', 'Total Q', 'Duration', 'Date', 'Time', 'Auto Submitted'];
+  const headers = ['#', 'Full Name', 'Email', 'Cohort', 'Score (/60)', 'Duration', 'Date', 'Time', 'Auto Submitted'];
   const rows = data.map((r, i) => {
     const dt = r.submittedAt ? new Date(r.submittedAt) : null;
     return [
@@ -33,8 +33,6 @@ function exportCSV(data) {
       `"${r.email || ''}"`,
       r.cohort || '',
       r.score ?? '',
-      r.correct ?? '',
-      r.totalQuestions ?? '',
       `"${r.duration || ''}"`,
       dt ? dt.toLocaleDateString() : '',
       dt ? dt.toLocaleTimeString() : '',
@@ -53,7 +51,7 @@ function exportCSV(data) {
 
 // ─── Excel-like TSV Export (opens in Excel) ────────────────────────────────
 function exportExcel(data) {
-  const headers = ['#', 'Full Name', 'Email', 'Cohort', 'Score (%)', 'Correct', 'Total Q', 'Duration', 'Date', 'Time', 'Auto Submitted'];
+  const headers = ['#', 'Full Name', 'Email', 'Cohort', 'Score (/60)', 'Duration', 'Date', 'Time', 'Auto Submitted'];
   const rows = data.map((r, i) => {
     const dt = r.submittedAt ? new Date(r.submittedAt) : null;
     return [
@@ -62,8 +60,6 @@ function exportExcel(data) {
       r.email || '',
       r.cohort || '',
       r.score ?? '',
-      r.correct ?? '',
-      r.totalQuestions ?? '',
       r.duration || '',
       dt ? dt.toLocaleDateString() : '',
       dt ? dt.toLocaleTimeString() : '',
@@ -90,8 +86,7 @@ function exportPDF(data) {
         <td>${r.fullName || '-'}</td>
         <td>${r.email || '-'}</td>
         <td>${r.cohort || '-'}</td>
-        <td style="font-weight:bold;color:${r.score >= 50 ? '#16a34a' : '#dc2626'}">${r.score ?? '-'}%</td>
-        <td>${r.correct ?? '-'} / ${r.totalQuestions ?? '-'}</td>
+        <td style="font-weight:bold">${r.score ?? '-'} / 60</td>
         <td>${r.duration || '-'}</td>
         <td>${dt ? dt.toLocaleDateString() : '-'} ${dt ? dt.toLocaleTimeString() : ''}</td>
         <td>${r.autoSubmitted ? 'Auto' : 'Manual'}</td>
@@ -116,7 +111,7 @@ function exportPDF(data) {
     <table>
       <thead><tr>
         <th>#</th><th>Name</th><th>Email</th><th>Cohort</th>
-        <th>Score</th><th>Correct</th><th>Duration</th><th>Date & Time</th><th>Submit Type</th>
+        <th>Score (/60)</th><th>Duration</th><th>Date & Time</th><th>Submit Type</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
@@ -208,11 +203,10 @@ const CbtAdminDashboard = () => {
 
   // ── Stats (Dynamic: changes as filters change) ────────────────────────
   const stats = useMemo(() => {
-    if (!filtered.length) return { total: 0, avg: 0, highest: 0, passed: 0 };
+    if (!filtered.length) return { total: 0, avg: 0, highest: 0 };
     const avg = (filtered.reduce((a, r) => a + (r.score || 0), 0) / filtered.length).toFixed(1);
     const highest = Math.max(...filtered.map((r) => r.score || 0));
-    const passed = filtered.filter((r) => (r.score || 0) >= 30).length; // Pass is 30/60?
-    return { total: filtered.length, avg, highest, passed };
+    return { total: filtered.length, avg, highest };
   }, [filtered]);
 
 
@@ -335,18 +329,17 @@ const CbtAdminDashboard = () => {
 
         {/* ── Stats Grid ─────────────────────────────────────────────── */}
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
               { title: 'Total Participants', value: stats.total, icon: <Users size={20} />, color: 'text-blue-400 bg-blue-500/10' },
-              { title: 'Average Score', value: `${stats.avg}%`, icon: <TrendingUp size={20} />, color: 'text-indigo-400 bg-indigo-500/10' },
-              { title: 'Highest Score', value: `${stats.highest}%`, icon: <Award size={20} />, color: 'text-yellow-400 bg-yellow-500/10' },
-              { title: 'Passed (≥50%)', value: stats.passed, icon: <CheckCircle2 size={20} />, color: 'text-emerald-400 bg-emerald-500/10' },
+              { title: 'Average Score', value: stats.avg, icon: <TrendingUp size={20} />, color: 'text-indigo-400 bg-indigo-500/10' },
+              { title: 'Highest Score', value: stats.highest, icon: <Award size={20} />, color: 'text-yellow-400 bg-yellow-500/10' },
             ].map((s) => (
-              <div key={s.title} className="bg-slate-900 border border-white/[0.05] rounded-2xl p-5 flex items-center gap-4">
-                <div className={`p-2.5 rounded-xl ${s.color}`}>{s.icon}</div>
+              <div key={s.title} className="bg-slate-900 border border-white/[0.05] rounded-2xl p-6 flex items-center gap-5">
+                <div className={`p-3.5 rounded-2xl ${s.color}`}>{s.icon}</div>
                 <div>
-                  <p className="text-slate-400 text-xs">{s.title}</p>
-                  <p className="text-2xl font-black text-white">{s.value}</p>
+                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">{s.title}</p>
+                  <p className="text-3xl font-black text-white mt-1">{s.value}</p>
                 </div>
               </div>
             ))}
@@ -395,8 +388,7 @@ const CbtAdminDashboard = () => {
                     { label: 'Name', field: 'fullName' },
                     { label: 'Email', field: 'email' },
                     { label: 'Cohort', field: 'cohort' },
-                    { label: 'Score', field: 'score' },
-                    { label: 'Correct', field: 'correct' },
+                    { label: 'Score (/60)', field: 'score' },
                     { label: 'Duration', field: 'durationSeconds' },
                     { label: 'Date & Time', field: 'submittedAt' },
                     { label: 'Submit', field: null },
@@ -438,9 +430,6 @@ const CbtAdminDashboard = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-slate-400 text-xs">
-                        {r.correct ?? '-'} / {r.totalQuestions ?? '-'}
-                      </td>
-                      <td className="px-4 py-3.5 text-slate-400 text-xs">
                         <span className="flex items-center gap-1">
                           <Clock size={11} />
                           {r.duration || '-'}
@@ -473,7 +462,7 @@ const CbtAdminDashboard = () => {
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="px-4 py-12 text-center text-slate-500 text-sm">
+                    <td colSpan={9} className="px-4 py-12 text-center text-slate-500 text-sm">
                       No results found for the selected filters.
                     </td>
                   </tr>
