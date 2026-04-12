@@ -1,35 +1,53 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper: Check if user is the authorized admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'admin@fma.com';
+    }
 
-    // ── Registration (existing behaviour) ──────────────────────────────
-    // Public write during registration, public read for CBT activation check
+    // ── Students Collection ──────────────────────────────────────────
+    // GOAL: Protect personal info (address, phone) from public eyes.
     match /students/{docId} {
-      allow read: if true;
-      allow write: if true;
+      // Allow anybody to register (create a record)
+      allow create: if true;
+      // ONLY the admin can view, change, or delete student records
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── CBT Results ──────────────────────────────────────────────────
+    // GOAL: Prevent students from seeing others' scores or changing their own.
+    match /cbt_results/{uid} {
+      // User can create their OWN result, but only if they are logged in
+      allow create: if request.auth != null && request.auth.uid == uid;
+      
+      // Admin can see everything; Users can only see their own score
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      
+      // NOBODY can update a score once it's submitted (prevents tampering)
+      allow update: if false; 
+      
+      // Only admin can delete results
+      allow delete: if isAdmin();
     }
 
     // ── CBT User Profiles ─────────────────────────────────────────────
-    // Only the authenticated user can read/write their own profile
     match /cbt_users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if isAdmin() || (request.auth != null && request.auth.uid == uid);
     }
-
+    
     // ── CBT Exam Progress ─────────────────────────────────────────────
     match /cbt_progress/{uid} {
+      // Temporary progress during the exam is private to the student
       allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-
-    // ── CBT Results ───────────────────────────────────────────────────
-    // Write by the exam taker; read by anyone (admin dashboard is client-side)
-    match /cbt_results/{uid} {
-      allow write: if request.auth != null && request.auth.uid == uid;
-      allow read: if true;
+      // Allow admin to clear progress if needed (e.g. for a retake)
+      allow delete: if isAdmin();
     }
 
     // ── Legacy waitlist ───────────────────────────────────────────────
     match /registrations/{docId} {
-      allow read, write: if true;
+      allow read, write: if isAdmin();
     }
   }
 }
