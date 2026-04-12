@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { db } from '../../services/firebase';
+import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth, db } from '../../services/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import {
   Users,
@@ -14,6 +16,8 @@ import {
   ChevronDown,
   FileSpreadsheet,
   FileText,
+  LogOut,
+  ShieldCheck
 } from 'lucide-react';
 
 // ─── CSV Export ────────────────────────────────────────────────────────────
@@ -137,8 +141,12 @@ const GRADES = ['All', 'Distinction', 'Credit', 'Merit', 'Pass', 'Fail'];
 
 // ─── Component ─────────────────────────────────────────────────────────────
 const CbtAdminDashboard = () => {
+  const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
   const [search, setSearch] = useState('');
   const [cohortFilter, setCohortFilter] = useState('All');
   const [gradeFilter, setGradeFilter] = useState('All');
@@ -147,6 +155,20 @@ const CbtAdminDashboard = () => {
   const [showExportMenu, setShowExportMenu] = useState(false);
 
   useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user && user.email === 'admin@fma.com') {
+        setIsAdmin(true);
+        setAuthLoading(false);
+      } else {
+        navigate('/cbt/admin-login');
+      }
+    });
+    return () => unsub();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    
     const fetchResults = async () => {
       try {
         const q = query(collection(db, 'cbt_results'), orderBy('submittedAt', 'desc'));
@@ -159,7 +181,23 @@ const CbtAdminDashboard = () => {
       }
     };
     fetchResults();
-  }, []);
+  }, [isAdmin]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate('/cbt/admin-login');
+  };
+
+  if (authLoading || (isAdmin && loading)) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white gap-4">
+        <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+        <p className="text-slate-400 text-sm font-medium">Securing session...</p>
+      </div>
+    );
+  }
+
+  if (!isAdmin) return null;
 
   // ── Stats ──────────────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -242,32 +280,41 @@ const CbtAdminDashboard = () => {
           </div>
 
           {/* Export dropdown */}
-          <div className="relative">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowExportMenu((v) => !v)}
-              className="flex items-center gap-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl transition-all text-sm"
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold px-4 py-2.5 rounded-xl transition-all text-sm"
             >
-              <Download size={15} />
-              Export Results
+              <LogOut size={15} />
+              Logout
             </button>
-            {showExportMenu && (
-              <div className="absolute right-0 top-full mt-2 w-44 bg-[#0e1116] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
-                {[
-                  { label: 'Export as CSV', icon: <FileText size={13} />, action: () => { exportCSV(filtered); setShowExportMenu(false); } },
-                  { label: 'Export as Excel', icon: <FileSpreadsheet size={13} />, action: () => { exportExcel(filtered); setShowExportMenu(false); } },
-                  { label: 'Print / PDF', icon: <Download size={13} />, action: () => { exportPDF(filtered); setShowExportMenu(false); } },
-                ].map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={item.action}
-                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-300 hover:bg-white/[0.06] hover:text-white transition-colors text-left"
-                  >
-                    {item.icon}
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="relative">
+              <button
+                onClick={() => setShowExportMenu((v) => !v)}
+                className="flex items-center gap-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl transition-all text-sm"
+              >
+                <Download size={15} />
+                Export Results
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 top-full mt-2 w-44 bg-[#0e1116] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
+                  {[
+                    { label: 'Export as CSV', icon: <FileText size={13} />, action: () => { exportCSV(filtered); setShowExportMenu(false); } },
+                    { label: 'Export as Excel', icon: <FileSpreadsheet size={13} />, action: () => { exportExcel(filtered); setShowExportMenu(false); } },
+                    { label: 'Print / PDF', icon: <Download size={13} />, action: () => { exportPDF(filtered); setShowExportMenu(false); } },
+                  ].map((item) => (
+                    <button
+                      key={item.label}
+                      onClick={item.action}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-300 hover:bg-white/[0.06] hover:text-white transition-colors text-left"
+                    >
+                      {item.icon}
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

@@ -15,6 +15,7 @@ import CbtWelcomePage from './pages/cbt/CbtWelcomePage';
 import CbtExamPage from './pages/cbt/CbtExamPage';
 import CbtResultsSubmittedPage from './pages/cbt/CbtResultsSubmittedPage';
 import CbtAdminDashboard from './pages/cbt/CbtAdminDashboard';
+import CbtAdminLoginPage from './pages/cbt/CbtAdminLoginPage';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
       <Route path="/cbt/exam" element={<CbtExamPage />} />
       <Route path="/cbt/results-submitted" element={<CbtResultsSubmittedPage />} />
       <Route path="/cbt/admin" element={<CbtAdminDashboard />} />
+      <Route path="/cbt/admin-login" element={<CbtAdminLoginPage />} />
     </Routes>
   );
 }
