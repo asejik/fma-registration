@@ -418,7 +418,6 @@ const CbtAdminDashboard = () => {
               <tbody className="divide-y divide-white/[0.04]">
                 {filtered.map((r, i) => {
                   const dt = r.submittedAt ? new Date(r.submittedAt) : null;
-                  const grade = gradeLabel(r.score || 0);
                   return (
                     <tr key={r.id} className="hover:bg-white/[0.025] transition-colors">
                       <td className="px-4 py-3.5 text-slate-400 font-mono text-xs">{i + 1}</td>
