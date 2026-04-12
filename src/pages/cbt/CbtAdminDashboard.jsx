@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from '../../services/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import {
   Users,
   Search,
@@ -17,7 +17,9 @@ import {
   FileSpreadsheet,
   FileText,
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  Trash2,
+  RotateCcw
 } from 'lucide-react';
 
 // ─── CSV Export ────────────────────────────────────────────────────────────
@@ -188,15 +190,6 @@ const CbtAdminDashboard = () => {
     navigate('/cbt/admin-login');
   };
 
-  // ── Stats ──────────────────────────────────────────────────────────────
-  const stats = useMemo(() => {
-    if (!results.length) return null;
-    const avg = Math.round(results.reduce((a, r) => a + (r.score || 0), 0) / results.length);
-    const highest = Math.max(...results.map((r) => r.score || 0));
-    const passed = results.filter((r) => (r.score || 0) >= 50).length;
-    return { total: results.length, avg, highest, passed };
-  }, [results]);
-
   // ── Filter + Sort ─────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     let data = [...results];
@@ -226,6 +219,48 @@ const CbtAdminDashboard = () => {
 
     return data;
   }, [results, search, cohortFilter, gradeFilter, sortField, sortDir]);
+
+  // ── Stats (Dynamic: changes as filters change) ────────────────────────
+  const stats = useMemo(() => {
+    if (!filtered.length) return { total: 0, avg: 0, highest: 0, passed: 0 };
+    const avg = Math.round(filtered.reduce((a, r) => a + (r.score || 0), 0) / filtered.length);
+    const highest = Math.max(...filtered.map((r) => r.score || 0));
+    const passed = filtered.filter((r) => (r.score || 0) >= 50).length;
+    return { total: filtered.length, avg, highest, passed };
+  }, [filtered]);
+
+  const handleDelete = async (result) => {
+    if (!window.confirm(`Are you sure you want to delete the result for ${result.fullName}? This will reset their exam status and allow them to retake the test.`)) return;
+
+    try {
+      setLoading(true);
+      const uid = result.uid || result.id;
+      
+      // 1. Delete the result doc
+      await deleteDoc(doc(db, 'cbt_results', uid));
+      
+      // 2. Reset user's exam status
+      await updateDoc(doc(db, 'cbt_users', uid), {
+        hasTakenExam: false,
+        lastScore: null
+      });
+
+      // 3. Clear progress doc (if any)
+      try {
+          await deleteDoc(doc(db, 'cbt_progress', uid));
+      } catch (e) { /* ignore if not exists */ }
+
+      // 4. Update local state
+      setResults(prev => prev.filter(r => (r.uid || r.id) !== uid));
+      
+      alert('Result deleted and user status reset successfully.');
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Failed to delete result. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleSort = (field) => {
     if (sortField === field) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -388,6 +423,7 @@ const CbtAdminDashboard = () => {
                     { label: 'Duration', field: 'durationSeconds' },
                     { label: 'Date & Time', field: 'submittedAt' },
                     { label: 'Submit', field: null },
+                    { label: 'Actions', field: null },
                   ].map((col) => (
                     <th
                       key={col.label}
@@ -451,6 +487,15 @@ const CbtAdminDashboard = () => {
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${r.autoSubmitted ? 'bg-orange-500/15 text-orange-300' : 'bg-slate-700/50 text-slate-400'}`}>
                           {r.autoSubmitted ? 'Auto' : 'Manual'}
                         </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <button
+                          onClick={() => handleDelete(r)}
+                          title="Delete result & reset user status"
+                          className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg transition-all"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </td>
                     </tr>
                   );
