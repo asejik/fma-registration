@@ -181,6 +181,12 @@ const CbtExamPage = () => {
           duration: durationStr,
           durationSeconds: durationSecs,
           submittedAt: new Date().toISOString(),
+          // Audit metadata
+          integrity: {
+            clientStartTime: startTimeRef.current,
+            clientFinishTime: Date.now(),
+            version: '2.0-secured'
+          },
           autoSubmitted: autoSubmit,
           answers: answersSnapshot,
         };

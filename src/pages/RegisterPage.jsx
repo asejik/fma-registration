@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PaystackButton } from 'react-paystack';
 import { db } from '../services/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Loader2, AlertCircle, ArrowLeft, Globe } from 'lucide-react';
 
@@ -78,7 +78,9 @@ const RegisterPage = () => {
     const finalData = { ...dataToSave, dateString: new Date().toISOString() };
 
     try {
-      await addDoc(collection(db, "students"), {
+      // Use paymentReference as the ID to prevent double-submissions or reference reuse
+      const docId = dataToSave.paymentReference || `UK-${Date.now()}`;
+      await setDoc(doc(db, "students", docId), {
         ...finalData,
         registeredAt: serverTimestamp()
       });
