@@ -146,7 +146,7 @@ const InfoSection = () => {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 uppercase font-bold">Dates</p>
-                    <p className="font-semibold">July 13th - 18th, 2026</p>
+                    <p className="font-semibold">July 12th - 18th, 2026</p>
                   </div>
                 </div>
 
@@ -156,7 +156,7 @@ const InfoSection = () => {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 uppercase font-bold">Schedule</p>
-                    <p className="font-semibold">Mon - Sat (9am - 6pm)</p>
+                    <p className="font-semibold">Sunday - Saturday</p>
                   </div>
                 </div>
               </div>
