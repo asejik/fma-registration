@@ -11,15 +11,12 @@ import {
   TrendingUp,
   Award,
   Clock,
-  CheckCircle2,
   ChevronUp,
   ChevronDown,
   FileSpreadsheet,
   FileText,
   LogOut,
-  ShieldCheck,
   Trash2,
-  RotateCcw,
   AlertTriangle,
   X
 } from 'lucide-react';
