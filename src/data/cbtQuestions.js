@@ -1599,9 +1599,19 @@ export const questionBank = [
 /**
  * Returns 60 unique questions randomly selected from the full question bank.
  * Uses Fisher-Yates shuffle for true randomness.
+ * @param {number} count - Number of questions to return.
+ * @param {string} cohort - User's cohort for filtering (e.g., 'UK').
  */
-export function getRandomQuestions(count = 60) {
-  const shuffled = [...questionBank];
+export function getRandomQuestions(count = 60, cohort = 'All') {
+  let pool = [...questionBank];
+
+  // Logic: UK students don't take FMA 510 (Choir Ethics)
+  if (cohort === 'UK') {
+    pool = pool.filter(q => q.course !== 'FMA 510');
+    console.log(`[CBT] Filtered FMA 510 questions for UK cohort. Remaining pool: ${pool.length}`);
+  }
+
+  const shuffled = [...pool];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];

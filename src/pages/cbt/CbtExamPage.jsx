@@ -75,7 +75,7 @@ const CbtExamPage = () => {
 
         // Generate deterministic set of questions per user (seeded by uid)
         // In practice: just use random shuffle — different on each login
-        const qs = getRandomQuestions(TOTAL_QUESTIONS);
+        const qs = getRandomQuestions(TOTAL_QUESTIONS, data.cohort);
         setQuestions(qs);
 
         // Try to restore saved progress from Firestore
