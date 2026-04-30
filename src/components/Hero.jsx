@@ -24,8 +24,8 @@ const Hero = () => {
     {
       id: 2,
       image: hero2,
-      title: "LAGOS, ILORIN & UK 2026",
-      subtitle: "Three locations. One mandate. Get ready."
+      title: "ILORIN 2026",
+      subtitle: "Join the next cohort of Kingdom leaders. Register now."
     },
     {
       id: 3,
@@ -34,10 +34,6 @@ const Hero = () => {
       subtitle: "6 Days of intensive spiritual training."
     }
   ];
-
-  const scrollToRegister = () => {
-    document.getElementById('register')?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-slate-900">

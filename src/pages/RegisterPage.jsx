@@ -10,8 +10,9 @@ const RegisterPage = () => {
   const [searchParams] = useSearchParams();
   const [isSaving, setIsSaving] = useState(false);
 
-  // AUTOMATED CLOSURE SCRIPT: Evaluates to true after 11:59 PM WAT on Feb 27, 2026
+  // AUTOMATED CLOSURE SCRIPT
   const isLagosClosed = new Date() > new Date('2026-02-27T23:59:59+01:00');
+  const isUKClosed = new Date() > new Date('2026-04-29T23:59:59+01:00');
 
   // CONFIGURATION
   const AMOUNT_NGN = 20000;
@@ -19,8 +20,8 @@ const RegisterPage = () => {
   const GOOGLE_SCRIPT_URL = import.meta.env.VITE_REGISTRATION_SHEET_URL;
 
   // Dynamic initialization logic
-  let defaultCohort = searchParams.get('cohort') || (isLagosClosed ? 'Ilorin' : 'Lagos');
-  if (isLagosClosed && defaultCohort === 'Lagos') {
+  let defaultCohort = searchParams.get('cohort') || 'Ilorin';
+  if ((isLagosClosed && defaultCohort === 'Lagos') || (isUKClosed && defaultCohort === 'UK')) {
       defaultCohort = 'Ilorin'; // Force fallback if they use an old URL post-deadline
   }
 
@@ -35,13 +36,13 @@ const RegisterPage = () => {
   useEffect(() => {
     const cohortParam = searchParams.get('cohort');
     if (cohortParam) {
-      if (isLagosClosed && cohortParam === 'Lagos') {
+      if ((isLagosClosed && cohortParam === 'Lagos') || (isUKClosed && cohortParam === 'UK')) {
          setFormData(prev => ({ ...prev, cohort: 'Ilorin' }));
       } else {
          setFormData(prev => ({ ...prev, cohort: cohortParam }));
       }
     }
-  }, [searchParams, isLagosClosed]);
+  }, [searchParams, isLagosClosed, isUKClosed]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -193,10 +194,26 @@ const RegisterPage = () => {
                     );
                 })}
 
-                <label className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center justify-center gap-1 transition-all ${isUK ? 'bg-red-600/20 border-red-500' : 'bg-slate-950 border-white/10 hover:border-white/30'}`}>
-                    <input type="radio" name="cohort" value="UK" checked={isUK} onChange={handleInputChange} className="hidden" />
-                    <span className="font-bold text-white flex items-center gap-2"><Globe size={14}/> UK</span>
-                    <span className="text-[10px] text-slate-400">May 2026</span>
+                <label className={`border rounded-xl p-4 flex flex-col items-center justify-center gap-1 transition-all
+                    ${isUKClosed ? 'opacity-40 cursor-not-allowed bg-slate-950 border-white/5'
+                    : isUK ? 'bg-red-600/20 border-red-500 cursor-pointer'
+                    : 'bg-slate-950 border-white/10 hover:border-white/30 cursor-pointer'}`
+                }>
+                    <input
+                        type="radio"
+                        name="cohort"
+                        value="UK"
+                        checked={isUK}
+                        onChange={handleInputChange}
+                        className="hidden"
+                        disabled={isUKClosed}
+                    />
+                    <span className={`font-bold flex items-center gap-2 ${isUKClosed ? 'text-slate-500 line-through' : 'text-white'}`}>
+                        <Globe size={14}/> UK
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-bold">
+                        {isUKClosed ? 'CLOSED' : 'May 2026'}
+                    </span>
                 </label>
             </div>
 

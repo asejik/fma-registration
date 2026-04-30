@@ -5,8 +5,9 @@ import { Link } from 'react-router-dom';
 const InfoSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // AUTOMATED CLOSURE SCRIPT: Evaluates to true after 11:59 PM WAT on Feb 27, 2026
+  // AUTOMATED CLOSURE SCRIPT
   const isLagosClosed = new Date() > new Date('2026-02-27T23:59:59+01:00');
+  const isUKClosed = new Date() > new Date('2026-04-29T23:59:59+01:00');
 
   // The Full Text
   const fullText = (
@@ -207,12 +208,19 @@ const InfoSection = () => {
                 </div>
               </div>
 
-              <Link
-                to="/register?cohort=UK"
-                className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-red-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
-              >
-                Register for UK <ArrowRight size={16} />
-              </Link>
+              {/* DYNAMIC TIME-BASED RENDER */}
+              {!isUKClosed ? (
+                <Link
+                  to="/register?cohort=UK"
+                  className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-red-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
+                >
+                  Register for UK <ArrowRight size={16} />
+                </Link>
+              ) : (
+                <div className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-slate-500 font-bold text-sm uppercase tracking-wide cursor-not-allowed">
+                  Registration Closed
+                </div>
+              )}
             </div>
           </div>
 
