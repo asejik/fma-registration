@@ -117,8 +117,11 @@ const CbtActivatePage = () => {
         hasTakenExam: false,
       });
 
-      // 6. Mark activation on the student record
-      await updateDoc(snapshot.docs[0].ref, { cbtActivated: true });
+      // 6. Mark activation on ALL matching student records (to handle duplicates)
+      const updatePromises = snapshot.docs.map(doc => 
+        updateDoc(doc.ref, { cbtActivated: true })
+      );
+      await Promise.all(updatePromises);
 
       setStatus('success');
       setTimeout(() => navigate('/cbt/login'), 2500);
