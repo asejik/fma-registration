@@ -63,30 +63,42 @@ const CbtActivatePage = () => {
     setStatus('loading');
 
     try {
-      // 1. Verify the participant exists in Firestore (students collection)
-      const studentsRef = collection(db, 'students');
-      const q = query(
-        studentsRef,
-        where('email', '==', formData.email.toLowerCase().trim()),
-        where('cohort', '==', formData.cohort)
-      );
-      const snapshot = await getDocs(q);
-
-      if (snapshot.empty) {
-        setErrorMsg(
-          'No registration found for this email and cohort. Please ensure you used your registered email and selected the correct cohort.'
-        );
-        setStatus('error');
-        return;
-      }
-
-      // 2. Create Firebase Auth account
+      // 1. Create Firebase Auth account FIRST
+      // This is necessary because our security rules require the user to be authenticated
+      // to read their own record in the 'students' collection.
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email.toLowerCase().trim(),
         formData.password
       );
       const user = userCredential.user;
+
+      // 2. Verify the participant exists in Firestore (students collection)
+      const studentsRef = collection(db, 'students');
+      const q = query(
+        studentsRef,
+        where('email', '==', formData.email.toLowerCase().trim()),
+        where('cohort', '==', formData.cohort)
+      );
+      
+      let snapshot;
+      try {
+        snapshot = await getDocs(q);
+      } catch (readError) {
+        // If read fails (e.g. still permission denied), clean up the user and rethrow
+        await user.delete();
+        throw readError;
+      }
+
+      if (snapshot.empty) {
+        // Clean up: delete the Auth account if no student record exists
+        await user.delete();
+        setErrorMsg(
+          'No registration found for this email and cohort. Please ensure you used your registered email and selected the correct cohort.'
+        );
+        setStatus('error');
+        return;
+      }
 
       // 3. Get fullName from the student record
       const studentDoc = snapshot.docs[0].data();

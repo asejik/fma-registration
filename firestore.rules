@@ -7,13 +7,21 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email == 'admin@fma.com';
     }
 
-    // ── Students Collection ──────────────────────────────────────────
-    // GOAL: Protect personal info (address, phone) from public eyes.
     match /students/{docId} {
       // Allow anybody to register (create a record)
       allow create: if true;
-      // ONLY the admin can view, change, or delete student records
-      allow read, update, delete: if isAdmin();
+      
+      // Allow read if user is Admin OR if the user is authenticated and viewing their own record
+      allow read: if isAdmin() || (request.auth != null && request.auth.token.email == resource.data.email);
+      
+      // Allow update if user is Admin OR if the user is authenticated and only marking their own record as activated
+      allow update: if isAdmin() || (
+        request.auth != null && 
+        request.auth.token.email == resource.data.email && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cbtActivated'])
+      );
+
+      allow delete: if isAdmin();
     }
 
     // ── CBT Results ──────────────────────────────────────────────────
