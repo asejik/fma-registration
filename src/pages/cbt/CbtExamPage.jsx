@@ -60,11 +60,14 @@ const CbtExamPage = () => {
       setUser(u);
 
       try {
+        console.log('CBT: Auth state changed, user:', u.uid);
         const profileDoc = await getDoc(doc(db, 'cbt_users', u.uid));
         if (!profileDoc.exists()) {
+          console.error('CBT: Profile not found for UID:', u.uid, '. Redirecting to login.');
           navigate('/cbt/login');
           return;
         }
+        console.log('CBT: Profile loaded successfully.');
         const data = profileDoc.data();
         setProfile(data);
 
