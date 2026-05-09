@@ -147,7 +147,7 @@ const InfoSection = () => {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 uppercase font-bold">Dates</p>
-                    <p className="font-semibold">July 12th - 18th, 2026</p>
+                    <p className="font-semibold">July 19th - 25th, 2026</p>
                   </div>
                 </div>
 

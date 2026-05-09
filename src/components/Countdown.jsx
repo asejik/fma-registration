@@ -9,8 +9,8 @@ const Countdown = () => {
   });
 
   useEffect(() => {
-    // Target Date
-    const targetDate = new Date("2026-05-04T09:00:00").getTime();
+    // Target Date: Ilorin Cohort Start
+    const targetDate = new Date("2026-07-19T09:00:00").getTime();
 
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
@@ -53,7 +53,7 @@ const Countdown = () => {
         {/* Label: Horizontal on Mobile, Vertical on Desktop (No Rotation) */}
         <div className="w-full md:w-auto text-center mb-4 md:mb-0 md:mr-6">
             <span className="text-slate-300 font-bold tracking-widest text-sm md:[writing-mode:vertical-rl] block">
-                UK COHORT STARTS IN
+                ILORIN COHORT STARTS IN
             </span>
         </div>
 
