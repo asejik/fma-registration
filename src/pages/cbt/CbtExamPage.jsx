@@ -108,6 +108,13 @@ const CbtExamPage = () => {
   }, [navigate]);
 
   // ── Timer ─────────────────────────────────────────────────────────────────
+  // Use a ref for submitExam to ensure the timer interval always calls the latest version
+  // (avoiding stale closure with empty answers)
+  const submitExamRef = useRef(submitExam);
+  useEffect(() => {
+    submitExamRef.current = submitExam;
+  }, [submitExam]);
+
   useEffect(() => {
     if (examState !== 'active') return;
 
@@ -115,7 +122,7 @@ const CbtExamPage = () => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
-          submitExam(true);
+          submitExamRef.current(true);
           return 0;
         }
         return prev - 1;
