@@ -107,59 +107,6 @@ const CbtExamPage = () => {
     return () => unsub();
   }, [navigate]);
 
-  // ── Timer ─────────────────────────────────────────────────────────────────
-  // Use a ref for submitExam to ensure the timer interval always calls the latest version
-  // (avoiding stale closure with empty answers)
-  const submitExamRef = useRef(submitExam);
-  useEffect(() => {
-    submitExamRef.current = submitExam;
-  }, [submitExam]);
-
-  useEffect(() => {
-    if (examState !== 'active') return;
-
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current);
-          submitExamRef.current(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timerRef.current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [examState]);
-
-  // ── Save progress periodically ────────────────────────────────────────────
-  // We use refs for timeLeft and answers to ensure the 15-second interval 
-  // is stable and never reset by the 1-second clock ticks.
-  const answersRef = useRef(answers);
-  const timeLeftRef = useRef(timeLeft);
-  
-  useEffect(() => { answersRef.current = answers; }, [answers]);
-  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
-
-  useEffect(() => {
-    if (examState !== 'active' || !user) return;
-    
-    const saveProgress = async () => {
-      try {
-        await updateDoc(doc(db, 'cbt_progress', user.uid), {
-          answers: answersRef.current,
-          timeLeft: timeLeftRef.current,
-        });
-      } catch (e) {
-        // silent fail
-      }
-    };
-
-    const interval = setInterval(saveProgress, 15000);
-    return () => clearInterval(interval);
-  }, [examState, user]);
-
   // ── Answer selection ──────────────────────────────────────────────────────
   const handleAnswer = useCallback(
     (qId, option) => {
@@ -235,6 +182,59 @@ const CbtExamPage = () => {
     },
     [answers, questions, profile, navigate]
   );
+
+  // ── Timer ─────────────────────────────────────────────────────────────────
+  // Use a ref for submitExam to ensure the timer interval always calls the latest version
+  // (avoiding stale closure with empty answers)
+  const submitExamRef = useRef(submitExam);
+  useEffect(() => {
+    submitExamRef.current = submitExam;
+  }, [submitExam]);
+
+  useEffect(() => {
+    if (examState !== 'active') return;
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          submitExamRef.current(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timerRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [examState]);
+
+  // ── Save progress periodically ────────────────────────────────────────────
+  // We use refs for timeLeft and answers to ensure the 15-second interval 
+  // is stable and never reset by the 1-second clock ticks.
+  const answersRef = useRef(answers);
+  const timeLeftRef = useRef(timeLeft);
+  
+  useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
+
+  useEffect(() => {
+    if (examState !== 'active' || !user) return;
+    
+    const saveProgress = async () => {
+      try {
+        await updateDoc(doc(db, 'cbt_progress', user.uid), {
+          answers: answersRef.current,
+          timeLeft: timeLeftRef.current,
+        });
+      } catch (e) {
+        // silent fail
+      }
+    };
+
+    const interval = setInterval(saveProgress, 15000);
+    return () => clearInterval(interval);
+  }, [examState, user]);
 
   // ── Loading ───────────────────────────────────────────────────────────────
   if (examState === 'loading') {
