@@ -61,6 +61,7 @@ const UK_PARTICIPANTS = [
   { fullName: "Adekunle Adewetan",                 email: "kunle.adewetan@gmail.com" },
   { fullName: "Susana Oseyi Okpere",              email: "susanaoseyi@gmail.com" },
   { fullName: "Emmanuel Kayode",                   email: "rexitsol@gmail.com" },
+  { fullName: "Henry Samson",                     email: "henrysam001@gmail.com" },
 ];
 
 /**
