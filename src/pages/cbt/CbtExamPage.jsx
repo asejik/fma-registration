@@ -134,20 +134,31 @@ const CbtExamPage = () => {
   }, [examState]);
 
   // ── Save progress periodically ────────────────────────────────────────────
+  // We use refs for timeLeft and answers to ensure the 15-second interval 
+  // is stable and never reset by the 1-second clock ticks.
+  const answersRef = useRef(answers);
+  const timeLeftRef = useRef(timeLeft);
+  
+  useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
+
   useEffect(() => {
     if (examState !== 'active' || !user) return;
-    const saveInterval = setInterval(async () => {
+    
+    const saveProgress = async () => {
       try {
         await updateDoc(doc(db, 'cbt_progress', user.uid), {
-          answers,
-          timeLeft,
+          answers: answersRef.current,
+          timeLeft: timeLeftRef.current,
         });
       } catch (e) {
         // silent fail
       }
-    }, 15000); // every 15 seconds
-    return () => clearInterval(saveInterval);
-  }, [examState, answers, timeLeft, user]);
+    };
+
+    const interval = setInterval(saveProgress, 15000);
+    return () => clearInterval(interval);
+  }, [examState, user]);
 
   // ── Answer selection ──────────────────────────────────────────────────────
   const handleAnswer = useCallback(
