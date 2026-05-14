@@ -113,7 +113,14 @@ const RegisterPage = () => {
     text: "PAY ₦" + AMOUNT_NGN.toLocaleString(),
     onSuccess: handlePaystackSuccess,
     onClose: () => console.log("Closed"),
-    metadata: { custom_fields: [{ display_name: "Cohort", variable_name: "cohort", value: formData.cohort }] }
+    metadata: { 
+      ...formData,
+      custom_fields: [
+        { display_name: "Cohort", variable_name: "cohort", value: formData.cohort },
+        { display_name: "Full Name", variable_name: "full_name", value: formData.fullName },
+        { display_name: "Phone", variable_name: "phone", value: formData.phone }
+      ] 
+    }
   };
 
   return (
