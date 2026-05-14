@@ -37,6 +37,16 @@ export default async function handler(req, res) {
     const metadata = data.metadata;
     const reference = data.reference;
 
+    // SECURITY: Only process payments belonging to the FMA subaccount
+    // This ensures other church payments on the same Paystack account are ignored
+    const FMA_SUBACCOUNT = "ACCT_cpxpivjkswnoekf";
+    const paymentSubaccount = data.subaccount?.subaccount_code || data.subaccount;
+    
+    if (paymentSubaccount !== FMA_SUBACCOUNT) {
+        console.log(`Webhook: Ignoring payment for subaccount ${paymentSubaccount}`);
+        return res.status(200).json({ message: 'Ignored (Different Subaccount)' });
+    }
+
     // Check if we have the metadata we need
     if (!metadata || !metadata.email) {
       console.error('Webhook: Received success but no student metadata found.');
