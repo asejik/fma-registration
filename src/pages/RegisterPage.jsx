@@ -13,6 +13,8 @@ const RegisterPage = () => {
   // AUTOMATED CLOSURE SCRIPT
   const isLagosClosed = new Date() > new Date('2026-02-27T23:59:59+01:00');
   const isUKClosed = new Date() > new Date('2026-04-29T23:59:59+01:00');
+  const isIlorinClosed = new Date() > new Date('2026-07-13T01:00:00+01:00');
+  const allRegistrationsClosed = isLagosClosed && isUKClosed && isIlorinClosed;
 
   // CONFIGURATION
   const AMOUNT_NGN = 20000;
@@ -21,8 +23,8 @@ const RegisterPage = () => {
 
   // Dynamic initialization logic
   let defaultCohort = searchParams.get('cohort') || 'Ilorin';
-  if ((isLagosClosed && defaultCohort === 'Lagos') || (isUKClosed && defaultCohort === 'UK')) {
-      defaultCohort = 'Ilorin'; // Force fallback if they use an old URL post-deadline
+  if ((isLagosClosed && defaultCohort === 'Lagos') || (isUKClosed && defaultCohort === 'UK') || (isIlorinClosed && defaultCohort === 'Ilorin')) {
+      defaultCohort = 'Ilorin'; // Force fallback; will be blocked by allRegistrationsClosed guard
   }
 
   const [formData, setFormData] = useState({
@@ -36,13 +38,13 @@ const RegisterPage = () => {
   useEffect(() => {
     const cohortParam = searchParams.get('cohort');
     if (cohortParam) {
-      if ((isLagosClosed && cohortParam === 'Lagos') || (isUKClosed && cohortParam === 'UK')) {
+      if ((isLagosClosed && cohortParam === 'Lagos') || (isUKClosed && cohortParam === 'UK') || (isIlorinClosed && cohortParam === 'Ilorin')) {
          setFormData(prev => ({ ...prev, cohort: 'Ilorin' }));
       } else {
          setFormData(prev => ({ ...prev, cohort: cohortParam }));
       }
     }
-  }, [searchParams, isLagosClosed, isUKClosed]);
+  }, [searchParams, isLagosClosed, isUKClosed, isIlorinClosed]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -146,6 +148,23 @@ const RegisterPage = () => {
             <p className="text-slate-400 mt-2">Secure your seat for the upcoming cohort.</p>
         </div>
 
+        {allRegistrationsClosed ? (
+          <div className="p-10 flex flex-col items-center justify-center text-center gap-6">
+            <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center">
+              <AlertCircle size={32} className="text-slate-500" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-white mb-2">Registration is Closed</h2>
+              <p className="text-slate-400 max-w-sm">
+                Registration for all 2026 Freedom Ministry Academy cohorts is now closed. Thank you for your interest.
+              </p>
+            </div>
+            <Link to="/" className="mt-2 px-8 py-3 rounded-full bg-slate-800 border border-white/10 text-slate-300 hover:text-white hover:bg-slate-700 transition-all font-semibold">
+              Back to Home
+            </Link>
+          </div>
+        ) : (
+
         <div className="p-8 md:p-10 space-y-8">
             <div className="grid md:grid-cols-2 gap-4">
                 <input name="fullName" value={formData.fullName} onChange={handleInputChange} required type="text" className="bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:border-blue-500 outline-none" placeholder="Full Name" />
@@ -171,7 +190,7 @@ const RegisterPage = () => {
             {/* AUTOMATED TIME-BASED RENDER */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {['Lagos', 'Ilorin'].map((c) => {
-                    const isClosed = c === 'Lagos' && isLagosClosed;
+                    const isClosed = (c === 'Lagos' && isLagosClosed) || (c === 'Ilorin' && isIlorinClosed);
 
                     return (
                         <label
@@ -195,7 +214,7 @@ const RegisterPage = () => {
                                 {c}
                             </span>
                             <span className="text-[10px] text-slate-400 font-bold">
-                                {isClosed ? 'CLOSED' : 'July 2026'}
+                                {c === 'Lagos' && isLagosClosed ? 'CLOSED' : c === 'Ilorin' && isIlorinClosed ? 'CLOSED' : 'July 2026'}
                             </span>
                         </label>
                     );
@@ -244,6 +263,7 @@ const RegisterPage = () => {
             )}
 
         </div>
+        )}
       </div>
     </div>
   );

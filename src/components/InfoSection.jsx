@@ -8,6 +8,8 @@ const InfoSection = () => {
   // AUTOMATED CLOSURE SCRIPT
   const isLagosClosed = new Date() > new Date('2026-02-27T23:59:59+01:00');
   const isUKClosed = new Date() > new Date('2026-04-29T23:59:59+01:00');
+  const isIlorinClosed = new Date() > new Date('2026-07-13T01:00:00+01:00');
+  const allRegistrationsClosed = isLagosClosed && isUKClosed && isIlorinClosed;
 
   // The Full Text
   const fullText = (
@@ -162,12 +164,19 @@ const InfoSection = () => {
                 </div>
               </div>
 
-              <Link
-                to="/register?cohort=Ilorin"
-                className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-cyan-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
-              >
-                Register for Ilorin <ArrowRight size={16} />
-              </Link>
+              {/* DYNAMIC TIME-BASED RENDER */}
+              {!isIlorinClosed ? (
+                <Link
+                  to="/register?cohort=Ilorin"
+                  className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-cyan-400 font-bold text-sm uppercase tracking-wide group-hover:gap-4 transition-all cursor-pointer hover:bg-white/5 rounded-b-xl"
+                >
+                  Register for Ilorin <ArrowRight size={16} />
+                </Link>
+              ) : (
+                <div className="w-full pt-8 border-t border-white/10 flex items-center gap-2 text-slate-500 font-bold text-sm uppercase tracking-wide cursor-not-allowed">
+                  Registration Closed
+                </div>
+              )}
             </div>
           </div>
 
@@ -229,9 +238,15 @@ const InfoSection = () => {
 
       {/* Enquiry Section */}
       <div className="mt-16 pt-6 border-t border-white/10 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
-        <p className="text-slate-400 text-sm mb-2 font-medium tracking-wide">
-          Have questions? Call for enquiries:
-        </p>
+        {allRegistrationsClosed ? (
+          <p className="text-slate-400 text-sm mb-2 font-medium tracking-wide">
+            Registration is now closed for all cohorts. For general enquiries:
+          </p>
+        ) : (
+          <p className="text-slate-400 text-sm mb-2 font-medium tracking-wide">
+            Have questions? Call for enquiries:
+          </p>
+        )}
         <a
           href="tel:+2347032566946"
           className="group flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/50 transition-all duration-300"
