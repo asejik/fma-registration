@@ -49,6 +49,9 @@ const CbtExamPage = () => {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
+  // Absolute deadline timestamp (ms). Derived from wall-clock so the timer
+  // is immune to browser tab throttling / setInterval drift.
+  const deadlineRef = useRef(null);
 
   // ── Auth guard + load ────────────────────────────────────────────────────
   useEffect(() => {
@@ -86,16 +89,29 @@ const CbtExamPage = () => {
         if (progressDoc.exists()) {
           const saved = progressDoc.data();
           if (saved.answers) setAnswers(saved.answers);
-          if (saved.timeLeft && saved.timeLeft > 0) setTimeLeft(saved.timeLeft);
           if (saved.questions && saved.questions.length === TOTAL_QUESTIONS) {
             setQuestions(saved.questions);
           }
+
+          // Reconstruct deadline from the persisted absolute timestamp first;
+          // fall back to the legacy timeLeft field for backwards-compatibility.
+          if (saved.deadline && saved.deadline > Date.now()) {
+            deadlineRef.current = saved.deadline;
+          } else if (saved.timeLeft && saved.timeLeft > 0) {
+            deadlineRef.current = Date.now() + saved.timeLeft * 1000;
+          } else {
+            deadlineRef.current = Date.now() + TOTAL_TIME_SECONDS * 1000;
+          }
+
+          // Sync initial display
+          setTimeLeft(Math.round((deadlineRef.current - Date.now()) / 1000));
         } else {
-          // Save the question set so it's the same even if they refresh
+          // Fresh start — record deadline and save the question set
+          deadlineRef.current = Date.now() + TOTAL_TIME_SECONDS * 1000;
           await setDoc(doc(db, 'cbt_progress', u.uid), {
             questions: qs,
             answers: {},
-            timeLeft: TOTAL_TIME_SECONDS,
+            deadline: deadlineRef.current,
             startedAt: new Date().toISOString(),
           });
         }
@@ -198,14 +214,18 @@ const CbtExamPage = () => {
     if (examState !== 'active') return;
 
     timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current);
-          submitExamRef.current(true);
-          return 0;
-        }
-        return prev - 1;
-      });
+      if (!deadlineRef.current) return;
+      // Compute remaining time from the absolute wall-clock deadline so the
+      // timer is accurate even when the browser throttles this interval
+      // (e.g. the tab is backgrounded or the user switches away).
+      const remaining = Math.round((deadlineRef.current - Date.now()) / 1000);
+      if (remaining <= 0) {
+        clearInterval(timerRef.current);
+        setTimeLeft(0);
+        submitExamRef.current(true);
+      } else {
+        setTimeLeft(remaining);
+      }
     }, 1000);
 
     return () => clearInterval(timerRef.current);
@@ -216,19 +236,19 @@ const CbtExamPage = () => {
   // We use refs for timeLeft and answers to ensure the 15-second interval 
   // is stable and never reset by the 1-second clock ticks.
   const answersRef = useRef(answers);
-  const timeLeftRef = useRef(timeLeft);
-  
+
   useEffect(() => { answersRef.current = answers; }, [answers]);
-  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
 
   useEffect(() => {
     if (examState !== 'active' || !user) return;
-    
+
     const saveProgress = async () => {
       try {
+        // Persist the absolute deadline so a page refresh restores the
+        // correct remaining time rather than replaying a stale timeLeft value.
         await updateDoc(doc(db, 'cbt_progress', user.uid), {
           answers: answersRef.current,
-          timeLeft: timeLeftRef.current,
+          deadline: deadlineRef.current,
         });
       } catch (e) {
         // silent fail
