@@ -7,6 +7,7 @@ import RegisterPage from './pages/RegisterPage';
 import SuccessPage from './pages/SuccessPage';
 import Dashboard from './pages/Dashboard';
 import UKSuccessPage from './pages/UKSuccessPage';
+import AttendancePage from './pages/AttendancePage';
 
 // CBT Pages
 import CbtActivatePage from './pages/cbt/CbtActivatePage';
@@ -26,6 +27,7 @@ function App() {
       <Route path="/success" element={<SuccessPage />} />
       <Route path="/uk-success" element={<UKSuccessPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/attendance" element={<AttendancePage />} />
 
       {/* ── CBT Portal ───────────────────────────────────────────────── */}
       <Route path="/cbt" element={<CbtLoginPage />} />

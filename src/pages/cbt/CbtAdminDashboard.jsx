@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from '../../services/firebase';
 import { collection, getDocs, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import AttendanceAdminTab from '../../components/AttendanceAdminTab';
 import {
   Users,
   Search,
@@ -18,7 +19,8 @@ import {
   LogOut,
   Trash2,
   AlertTriangle,
-  X
+  X,
+  ClipboardList,
 } from 'lucide-react';
 
 // ─── CSV Export ────────────────────────────────────────────────────────────
@@ -126,13 +128,19 @@ function exportPDF(data) {
 // ─── Component ─────────────────────────────────────────────────────────────
 const COHORTS = ['All', 'Lagos', 'Ilorin', 'UK'];
 
+const TABS = [
+  { id: 'cbt', label: 'CBT Results', icon: <Users size={14} /> },
+  { id: 'attendance', label: 'Attendance', icon: <ClipboardList size={14} /> },
+];
+
 const CbtAdminDashboard = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('cbt');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  
+
   const [search, setSearch] = useState('');
   const [cohortFilter, setCohortFilter] = useState('All');
   const [sortField, setSortField] = useState('submittedAt');
@@ -281,8 +289,8 @@ const CbtAdminDashboard = () => {
           <div className="flex items-center gap-4">
             <img src="/favicon.png" alt="FMA" className="h-10 w-10 rounded-xl object-cover" />
             <div>
-              <h1 className="text-xl font-black text-white">FMA CBT Results</h1>
-              <p className="text-slate-500 text-xs">Examination Administration Dashboard</p>
+              <h1 className="text-xl font-black text-white">FMA Admin Dashboard</h1>
+              <p className="text-slate-500 text-xs">CBT &amp; Attendance Administration</p>
             </div>
           </div>
 
@@ -324,6 +332,29 @@ const CbtAdminDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* ── Tab Navigation ────────────────────────────────────────── */}
+        <div className="flex gap-1 p-1 bg-slate-900 border border-white/[0.05] rounded-2xl w-fit">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                activeTab === tab.id
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/30'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {tab.icon}{tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Attendance Tab ────────────────────────────────────────────── */}
+        {activeTab === 'attendance' && <AttendanceAdminTab />}
+
+        {/* ── CBT Tab content ───────────────────────────────────────────── */}
+        {activeTab === 'cbt' && <>
 
         {/* ── Stats Grid ─────────────────────────────────────────────── */}
         {stats && (
@@ -469,6 +500,8 @@ const CbtAdminDashboard = () => {
             </table>
           </div>
         </div>
+
+        </> /* end CBT tab */}
 
       </div>
 
