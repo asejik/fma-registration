@@ -61,16 +61,21 @@ const AttendanceAdminTab = () => {
   // ── Load students ─────────────────────────────────────────────────────────
   const loadStudents = useCallback(async () => {
     const snap = await getDocs(collection(db, 'attendance_students'));
-    if (snap.empty) {
-      // Seed from hardcoded list on first load
-      const batch = ILORIN_STUDENTS.map((name) =>
-        addDoc(collection(db, 'attendance_students'), { name, cohort: 'Ilorin' })
+    const existingNames = snap.docs.map((d) => d.data().name).filter(Boolean);
+    const existingLower = new Set(existingNames.map((n) => n.toLowerCase()));
+
+    // Add any names from the updated seed that are not yet in Firestore
+    const missing = ILORIN_STUDENTS.filter((n) => !existingLower.has(n.toLowerCase()));
+    if (missing.length > 0) {
+      await Promise.all(
+        missing.map((name) => addDoc(collection(db, 'attendance_students'), { name, cohort: 'Ilorin' }))
       );
-      await Promise.all(batch);
-      setStudents([...ILORIN_STUDENTS]);
-    } else {
-      setStudents(snap.docs.map((d) => d.data().name).filter(Boolean).sort());
     }
+
+    const allNames = [...new Set([...existingNames, ...missing])].sort((a, b) =>
+      a.toLowerCase().localeCompare(b.toLowerCase())
+    );
+    setStudents(allNames);
   }, []);
 
   // ── Load attendance records ───────────────────────────────────────────────
@@ -307,7 +312,8 @@ const AttendanceAdminTab = () => {
           <table className="w-full text-sm">
             <thead className="bg-slate-950 text-slate-400 text-xs uppercase tracking-wider">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold sticky left-0 bg-slate-950 min-w-[200px]">Name</th>
+                <th className="px-4 py-3 text-left font-semibold sticky left-0 bg-slate-950 w-12">#</th>
+                <th className="px-4 py-3 text-left font-semibold sticky left-12 bg-slate-950 min-w-[200px]">Name</th>
                 {TRAINING_DAYS.map((date) => (
                   <th key={date} className="px-3 py-3 text-center font-semibold whitespace-nowrap min-w-[90px]">
                     <div>{dayLabel(date).split(' ')[0]}</div>
@@ -319,9 +325,10 @@ const AttendanceAdminTab = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
-              {students.map((name) => (
+              {students.map((name, idx) => (
                 <tr key={name} className="hover:bg-white/[0.02] transition-colors group">
-                  <td className="px-4 py-3 text-white font-medium text-xs sticky left-0 bg-slate-900 group-hover:bg-slate-900/80">{name}</td>
+                  <td className="px-4 py-3 text-slate-500 font-mono text-xs sticky left-0 bg-slate-900 group-hover:bg-slate-900/80 w-12">{idx + 1}</td>
+                  <td className="px-4 py-3 text-white font-medium text-xs sticky left-12 bg-slate-900 group-hover:bg-slate-900/80">{name}</td>
                   {TRAINING_DAYS.map((date) => {
                     const rec = records[date]?.[name];
                     return (
@@ -375,7 +382,8 @@ const AttendanceAdminTab = () => {
             {/* Day totals footer */}
             <tfoot className="bg-slate-950/60 border-t border-white/[0.06]">
               <tr>
-                <td className="px-4 py-3 text-slate-500 text-xs font-bold uppercase tracking-wider sticky left-0 bg-slate-950/60">Total Present</td>
+                <td className="px-4 py-3 sticky left-0 bg-slate-950/60" />
+                <td className="px-4 py-3 text-slate-500 text-xs font-bold uppercase tracking-wider sticky left-12 bg-slate-950/60">Total Present</td>
                 {TRAINING_DAYS.map((date) => (
                   <td key={date} className="px-3 py-3 text-center">
                     <span className="text-white font-black text-xs">{dayCount(date)}</span>
