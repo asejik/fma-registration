@@ -61,28 +61,20 @@ const AttendanceAdminTab = () => {
   // ── Load students ─────────────────────────────────────────────────────────
   const loadStudents = useCallback(async () => {
     const snap = await getDocs(collection(db, 'attendance_students'));
-    const existingDocs = snap.docs.map((d) => ({ id: d.id, name: d.data().name }));
-    const existingNamesLower = new Set(existingDocs.map((d) => d.name?.toLowerCase()).filter(Boolean));
-    const canonicalNamesLower = new Set(ILORIN_STUDENTS.map((n) => n.toLowerCase()));
-
-    // Prune names not in the exact canonical list
-    const toDelete = existingDocs.filter(d => d.name && !canonicalNamesLower.has(d.name.toLowerCase()));
-    // Add missing names
-    const missing = ILORIN_STUDENTS.filter((n) => !existingNamesLower.has(n.toLowerCase()));
-
-    const batchPromises = [];
-    if (toDelete.length > 0) {
-      batchPromises.push(...toDelete.map((d) => deleteDoc(doc(db, 'attendance_students', d.id))));
-    }
-    if (missing.length > 0) {
-      batchPromises.push(...missing.map((name) => addDoc(collection(db, 'attendance_students'), { name, cohort: 'Ilorin' })));
-    }
-
-    if (batchPromises.length > 0) {
+    
+    if (snap.empty) {
+      // Seed from hardcoded list if empty
+      const batchPromises = ILORIN_STUDENTS.map((name) => 
+        addDoc(collection(db, 'attendance_students'), { name, cohort: 'Ilorin' })
+      );
       await Promise.all(batchPromises);
+      setStudents([...ILORIN_STUDENTS]);
+    } else {
+      // Trust Firestore completely so manual Add/Delete from UI are preserved
+      const firestoreNames = snap.docs.map((d) => d.data().name).filter(Boolean);
+      firestoreNames.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+      setStudents(firestoreNames);
     }
-
-    setStudents([...ILORIN_STUDENTS]);
   }, []);
 
   // ── Load attendance records ───────────────────────────────────────────────
