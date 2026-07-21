@@ -51,5 +51,30 @@ service cloud.firestore {
     match /registrations/{docId} {
       allow read, write: if isAdmin();
     }
+
+    // ── Attendance Windows ────────────────────────────────────────────
+    // Admin sets the open/close times; public form reads them (no auth).
+    match /attendance_windows/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Attendance Records ────────────────────────────────────────────
+    // Public form creates records without login.
+    // Public can read their own day's records (for the duplicate check).
+    // Admin can read all and delete individual records.
+    match /attendance_records/{docId} {
+      allow create: if true;
+      allow read:   if true;
+      allow delete: if isAdmin();
+      allow update: if isAdmin();
+    }
+
+    // ── Attendance Students ───────────────────────────────────────────
+    // Form reads the list (no auth); admin manages the list.
+    match /attendance_students/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }
