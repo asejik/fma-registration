@@ -176,6 +176,25 @@ const CbtExamPage = () => {
 
         await setDoc(doc(db, 'cbt_results', u.uid), resultData);
 
+        // Backup to Google Sheets Webhook (asynchronous, don't await so it doesn't block)
+        const webhookUrl = import.meta.env.VITE_GOOGLE_SHEETS_WEBHOOK_URL;
+        if (webhookUrl) {
+          fetch(webhookUrl, {
+            method: 'POST',
+            body: JSON.stringify({
+              name: resultData.fullName,
+              email: resultData.email,
+              cohort: resultData.cohort,
+              score: resultData.score,
+              correct: resultData.correct,
+              total: resultData.totalQuestions,
+              duration: resultData.duration,
+              submittedAt: resultData.submittedAt,
+              autoSubmitted: resultData.autoSubmitted
+            })
+          }).catch(err => console.error("Webhook backup failed:", err));
+        }
+
         // Mark user as having taken exam
         await updateDoc(doc(db, 'cbt_users', u.uid), {
           hasTakenExam: true,
