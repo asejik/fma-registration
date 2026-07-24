@@ -14,7 +14,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 
-const TOTAL_TIME_SECONDS = 30 * 60; // 30 minutes
+const TOTAL_TIME_SECONDS = 25 * 60; // 25 minutes
 const TOTAL_QUESTIONS = 60;
 const OPTIONS = ['A', 'B', 'C', 'D'];
 
