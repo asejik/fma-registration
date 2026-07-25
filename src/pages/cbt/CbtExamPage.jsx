@@ -175,9 +175,35 @@ const CbtExamPage = () => {
           answers: answersSnapshot,
         };
 
+        // Primary action: Write the result
         await setDoc(doc(db, 'cbt_results', u.uid), resultData);
 
-        // Backup to Google Sheets Webhook (asynchronous, don't await so it doesn't block)
+        // Mark user as having taken exam (use merge: true so it never throws if doc is missing)
+        try {
+          await setDoc(
+            doc(db, 'cbt_users', u.uid),
+            {
+              hasTakenExam: true,
+              lastScore: score,
+            },
+            { merge: true }
+          );
+        } catch (uErr) {
+          console.warn('User status update warning:', uErr);
+        }
+
+        // Clean up progress (soft fail if missing/failed)
+        try {
+          await setDoc(
+            doc(db, 'cbt_progress', u.uid),
+            { completed: true },
+            { merge: true }
+          );
+        } catch (pErr) {
+          console.warn('Progress cleanup warning:', pErr);
+        }
+
+        // Backup to Google Sheets Webhook (asynchronous)
         const webhookUrl = import.meta.env.VITE_GOOGLE_SHEETS_WEBHOOK_URL;
         if (webhookUrl) {
           fetch(webhookUrl, {
@@ -191,31 +217,30 @@ const CbtExamPage = () => {
               total: resultData.totalQuestions,
               duration: resultData.duration,
               submittedAt: resultData.submittedAt,
-              autoSubmitted: resultData.autoSubmitted
-            })
-          }).catch(err => console.error("Webhook backup failed:", err));
+              autoSubmitted: resultData.autoSubmitted,
+            }),
+          }).catch((err) => console.error('Webhook backup failed:', err));
         }
 
-        // Mark user as having taken exam
-        await updateDoc(doc(db, 'cbt_users', u.uid), {
-          hasTakenExam: true,
-          lastScore: score,
-        });
-
-        // Clean up progress
-        await updateDoc(doc(db, 'cbt_progress', u.uid), {
-          completed: true,
-        });
-
+        // Transition to submitted state
         setExamState('submitted');
-        // Sign out and redirect to results
-        setTimeout(async () => {
+
+        // Redirect to confirmation page
+        setTimeout(() => {
           navigate('/cbt/results-submitted', {
-            state: { score, correct, total: questions.length, duration: durationStr, name: profileData.fullName },
+            state: {
+              score,
+              correct,
+              total: questions.length,
+              duration: durationStr,
+              name: profileData.fullName,
+            },
           });
         }, 1500);
       } catch (err) {
-        console.error('Submit error', err);
+        console.error('Submit error:', err);
+        // If result write failed completely, keep user in submitting/active state with an alert
+        alert('Network connection error while submitting. Please check your connection and tap Submit again.');
         setExamState('active');
       }
     },
