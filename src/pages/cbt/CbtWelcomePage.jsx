@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../../services/firebase';
 import {
   BookOpen,
@@ -37,15 +37,42 @@ const CbtWelcomePage = () => {
       setUser(u);
 
       try {
-        const profileDoc = await getDoc(doc(db, 'cbt_users', u.uid));
-        if (profileDoc.exists()) {
-          const data = profileDoc.data();
-          setProfile(data);
+        let profileDoc = await getDoc(doc(db, 'cbt_users', u.uid));
+        let data = profileDoc.exists() ? profileDoc.data() : null;
 
-          // If they already took the exam, redirect to results 
+        // Auto-recovery: If cbt_users profile is missing, try to rebuild from students collection
+        if (!data) {
+          console.warn('CBT: Profile missing for UID:', u.uid, '. Attempting auto-recovery...');
+          const email = (u.email || '').toLowerCase().trim();
+          if (email) {
+            const q = query(collection(db, 'students'), where('email', '==', email));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+              const sData = snap.docs[0].data();
+              data = {
+                uid: u.uid,
+                fullName: sData.fullName || u.displayName || 'Participant',
+                email: email,
+                cohort: sData.cohort || 'Ilorin',
+                activated: true,
+                createdAt: new Date().toISOString(),
+                hasTakenExam: false,
+              };
+              await setDoc(doc(db, 'cbt_users', u.uid), data, { merge: true });
+            }
+          }
+        }
+
+        if (data) {
+          setProfile(data);
           if (data.hasTakenExam) {
             navigate('/cbt/results-submitted');
+            return;
           }
+        } else {
+          // If still no profile found, redirect to activation page
+          navigate('/cbt/activate');
+          return;
         }
       } catch (err) {
         console.error('Failed to load profile', err);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../../services/firebase';
 import { getRandomQuestions } from '../../data/cbtQuestions';
 import {
@@ -45,7 +45,7 @@ const CbtExamPage = () => {
   const [answers, setAnswers] = useState({}); // { questionId: 'A'|'B'|'C'|'D' }
   const [currentIdx, setCurrentIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME_SECONDS);
-  const [examState, setExamState] = useState('loading'); // loading | active | submitting | submitted
+  const [examState, setExamState] = useState('loading'); // loading | active | submitting | submitted | error
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
@@ -64,14 +64,48 @@ const CbtExamPage = () => {
 
       try {
         console.log('CBT: Auth state changed, user:', u.uid);
-        const profileDoc = await getDoc(doc(db, 'cbt_users', u.uid));
-        if (!profileDoc.exists()) {
-          console.error('CBT: Profile not found for UID:', u.uid, '. Redirecting to login.');
-          navigate('/cbt/login');
-          return;
+        let profileDoc = await getDoc(doc(db, 'cbt_users', u.uid));
+        let data = profileDoc.exists() ? profileDoc.data() : null;
+
+        // Auto-recovery: If cbt_users profile is missing, construct fallback or pull from students
+        if (!data) {
+          console.warn('CBT: Profile missing on Exam page for UID:', u.uid, '. Auto-recovering...');
+          const email = (u.email || '').toLowerCase().trim();
+          let fullName = u.displayName || 'Participant';
+          let cohort = 'Ilorin';
+
+          if (email) {
+            try {
+              const q = query(collection(db, 'students'), where('email', '==', email));
+              const snap = await getDocs(q);
+              if (!snap.empty) {
+                const sData = snap.docs[0].data();
+                if (sData.fullName) fullName = sData.fullName;
+                if (sData.cohort) cohort = sData.cohort;
+              }
+            } catch (e) {
+              console.warn('Student lookup warning:', e);
+            }
+          }
+
+          data = {
+            uid: u.uid,
+            fullName,
+            email,
+            cohort,
+            activated: true,
+            createdAt: new Date().toISOString(),
+            hasTakenExam: false,
+          };
+
+          try {
+            await setDoc(doc(db, 'cbt_users', u.uid), data, { merge: true });
+            console.log('CBT: Auto-recovered cbt_users document for UID:', u.uid);
+          } catch (e) {
+            console.warn('Profile write warning:', e);
+          }
         }
-        console.log('CBT: Profile loaded successfully.');
-        const data = profileDoc.data();
+
         setProfile(data);
 
         if (data.hasTakenExam) {
