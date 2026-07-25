@@ -79,48 +79,49 @@ const CbtExamPage = () => {
           return;
         }
 
-        // Generate deterministic set of questions per user (seeded by uid)
-        // In practice: just use random shuffle — different on each login
+        // Generate questions pool
         const qs = getRandomQuestions(TOTAL_QUESTIONS, data.cohort);
         setQuestions(qs);
 
-        // Try to restore saved progress from Firestore
-        const progressDoc = await getDoc(doc(db, 'cbt_progress', u.uid));
-        if (progressDoc.exists()) {
-          const saved = progressDoc.data();
-          if (saved.answers) setAnswers(saved.answers);
-          if (saved.questions && saved.questions.length === TOTAL_QUESTIONS) {
-            setQuestions(saved.questions);
-          }
+        // Try to restore or initialize saved progress (non-fatal if network glitches)
+        try {
+          const progressDoc = await getDoc(doc(db, 'cbt_progress', u.uid));
+          if (progressDoc.exists()) {
+            const saved = progressDoc.data();
+            if (saved.answers) setAnswers(saved.answers);
+            if (saved.questions && saved.questions.length === TOTAL_QUESTIONS) {
+              setQuestions(saved.questions);
+            }
 
-          // Reconstruct deadline from the persisted absolute timestamp first;
-          // fall back to the legacy timeLeft field for backwards-compatibility.
-          if (saved.deadline && saved.deadline > Date.now()) {
-            deadlineRef.current = saved.deadline;
-          } else if (saved.timeLeft && saved.timeLeft > 0) {
-            deadlineRef.current = Date.now() + saved.timeLeft * 1000;
+            if (saved.deadline && saved.deadline > Date.now()) {
+              deadlineRef.current = saved.deadline;
+            } else if (saved.timeLeft && saved.timeLeft > 0) {
+              deadlineRef.current = Date.now() + saved.timeLeft * 1000;
+            } else {
+              deadlineRef.current = Date.now() + TOTAL_TIME_SECONDS * 1000;
+            }
+            setTimeLeft(Math.round((deadlineRef.current - Date.now()) / 1000));
           } else {
             deadlineRef.current = Date.now() + TOTAL_TIME_SECONDS * 1000;
+            await setDoc(doc(db, 'cbt_progress', u.uid), {
+              questions: qs,
+              answers: {},
+              deadline: deadlineRef.current,
+              startedAt: new Date().toISOString(),
+            });
           }
-
-          // Sync initial display
-          setTimeLeft(Math.round((deadlineRef.current - Date.now()) / 1000));
-        } else {
-          // Fresh start — record deadline and save the question set
-          deadlineRef.current = Date.now() + TOTAL_TIME_SECONDS * 1000;
-          await setDoc(doc(db, 'cbt_progress', u.uid), {
-            questions: qs,
-            answers: {},
-            deadline: deadlineRef.current,
-            startedAt: new Date().toISOString(),
-          });
+        } catch (progressErr) {
+          console.warn('Progress sync warning (non-fatal):', progressErr);
+          if (!deadlineRef.current) {
+            deadlineRef.current = Date.now() + TOTAL_TIME_SECONDS * 1000;
+          }
         }
 
         startTimeRef.current = Date.now();
         setExamState('active');
       } catch (err) {
         console.error('Exam load error', err);
-        setExamState('active');
+        setExamState('error');
       }
     });
     return () => unsub();
@@ -288,6 +289,28 @@ const CbtExamPage = () => {
     );
   }
 
+  if (examState === 'error') {
+    return (
+      <div className="min-h-screen bg-[#06090f] flex items-center justify-center flex-col gap-6 px-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-red-500/15 flex items-center justify-center border border-red-500/20">
+          <AlertTriangle size={32} className="text-red-400" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-white mb-2">Connection Issue</h2>
+          <p className="text-slate-400 text-sm max-w-xs mx-auto">
+            Unable to load exam questions due to a network hiccup. Please check your connection and retry.
+          </p>
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-indigo-900/40"
+        >
+          Retry Loading Exam
+        </button>
+      </div>
+    );
+  }
+
   if (examState === 'submitting' || examState === 'submitted') {
     return (
       <div className="min-h-screen bg-[#06090f] flex items-center justify-center flex-col gap-6">
@@ -310,9 +333,25 @@ const CbtExamPage = () => {
   }
 
   const currentQ = questions[currentIdx];
+
+  if (!currentQ) {
+    return (
+      <div className="min-h-screen bg-[#06090f] flex items-center justify-center flex-col gap-4">
+        <Loader2 size={40} className="text-indigo-400 animate-spin" />
+        <p className="text-slate-400 text-sm">Preparing questions…</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 text-xs text-indigo-400 underline"
+        >
+          Tap here if it takes too long
+        </button>
+      </div>
+    );
+  }
+
   const isWarning = timeLeft <= 300; // 5 minutes
   const answeredCount = Object.keys(answers).length;
-  const progressPct = ((currentIdx + 1) / questions.length) * 100;
+  const progressPct = questions.length ? ((currentIdx + 1) / questions.length) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-[#06090f] flex flex-col relative overflow-hidden">
