@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Loader2,
   CheckCircle2,
+  Lock,
 } from 'lucide-react';
 
 const TOTAL_TIME_SECONDS = 25 * 60; // 25 minutes
@@ -117,11 +118,15 @@ const CbtExamPage = () => {
         const qs = getRandomQuestions(TOTAL_QUESTIONS, data.cohort);
         setQuestions(qs);
 
-        // Try to restore or initialize saved progress (non-fatal if network glitches)
+        // Try to restore existing saved progress (block new attempts if no progress exists)
         try {
           const progressDoc = await getDoc(doc(db, 'cbt_progress', u.uid));
           if (progressDoc.exists()) {
             const saved = progressDoc.data();
+            if (saved.completed) {
+              navigate('/cbt/results-submitted');
+              return;
+            }
             if (saved.answers) setAnswers(saved.answers);
             if (saved.questions && saved.questions.length === TOTAL_QUESTIONS) {
               setQuestions(saved.questions);
@@ -136,19 +141,15 @@ const CbtExamPage = () => {
             }
             setTimeLeft(Math.round((deadlineRef.current - Date.now()) / 1000));
           } else {
-            deadlineRef.current = Date.now() + TOTAL_TIME_SECONDS * 1000;
-            await setDoc(doc(db, 'cbt_progress', u.uid), {
-              questions: qs,
-              answers: {},
-              deadline: deadlineRef.current,
-              startedAt: new Date().toISOString(),
-            });
+            // Portal is closed — block fresh exam attempts
+            console.log('CBT: Portal is closed for fresh attempts.');
+            setExamState('closed');
+            return;
           }
         } catch (progressErr) {
-          console.warn('Progress sync warning (non-fatal):', progressErr);
-          if (!deadlineRef.current) {
-            deadlineRef.current = Date.now() + TOTAL_TIME_SECONDS * 1000;
-          }
+          console.warn('Progress check error:', progressErr);
+          setExamState('closed');
+          return;
         }
 
         startTimeRef.current = Date.now();
@@ -344,6 +345,28 @@ const CbtExamPage = () => {
       <div className="min-h-screen bg-[#06090f] flex items-center justify-center flex-col gap-4">
         <Loader2 size={40} className="text-indigo-400 animate-spin" />
         <p className="text-slate-400 text-sm">Loading your exam…</p>
+      </div>
+    );
+  }
+
+  if (examState === 'closed') {
+    return (
+      <div className="min-h-screen bg-[#06090f] flex items-center justify-center flex-col gap-6 px-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-red-500/15 flex items-center justify-center border border-red-500/20">
+          <Lock size={32} className="text-red-400" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-black text-white mb-2">Examination Period Ended</h2>
+          <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed">
+            The official CBT examination window for this cohort has officially closed. New exam attempts can no longer be started.
+          </p>
+        </div>
+        <button
+          onClick={() => navigate('/cbt/welcome')}
+          className="bg-white/10 hover:bg-white/15 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all border border-white/10"
+        >
+          Return to Portal
+        </button>
       </div>
     );
   }

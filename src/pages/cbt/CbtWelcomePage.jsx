@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Loader2,
   LogOut,
+  Lock,
 } from 'lucide-react';
 
 const RULES = [
@@ -26,7 +27,6 @@ const CbtWelcomePage = () => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -82,11 +82,6 @@ const CbtWelcomePage = () => {
     });
     return () => unsub();
   }, [navigate]);
-
-  const handleStart = () => {
-    setStarting(true);
-    setTimeout(() => navigate('/cbt/exam'), 600);
-  };
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -183,27 +178,22 @@ const CbtWelcomePage = () => {
           </div>
         </div>
 
-        {/* Start button */}
-        <button
-          onClick={handleStart}
-          disabled={starting}
-          className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-70 text-white font-black text-lg py-5 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-900/50 group"
-        >
-          {starting ? (
-            <>
-              <Loader2 size={20} className="animate-spin" />
-              Preparing your exam…
-            </>
-          ) : (
-            <>
-              Click to Start Exam
-              <ChevronRight size={22} className="group-hover:translate-x-1 transition-transform" />
-            </>
-          )}
-        </button>
+        {/* Closed Portal Banner */}
+        <div className="w-full bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center space-y-3 shadow-xl">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20 text-red-400 mb-1">
+            <Lock size={24} />
+          </div>
+          <h3 className="text-xl font-black text-white">Examination Window Closed</h3>
+          <p className="text-slate-300 text-sm leading-relaxed max-w-md mx-auto">
+            The official CBT examination period for this cohort has ended. New exam attempts are no longer being accepted.
+          </p>
+          <p className="text-slate-500 text-xs pt-1">
+            If you missed the exam or experienced technical issues, please contact the academy administration.
+          </p>
+        </div>
 
         <p className="text-center text-xs text-slate-600 mt-5">
-          Your exam will begin immediately when you click the button above. Ensure you are in a distraction-free environment.
+          Freedom Ministry Academy &copy; {new Date().getFullYear()}
         </p>
       </div>
     </div>
